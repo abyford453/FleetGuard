@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block page_title %}Select Tenant{% endblock %}
+{% block page_subtitle %}Choose which organization you’re working in{% endblock %}
+{% block content %}
+  <div class="panel">
+    <div style="display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;">
+      <div>
+        <div style="font-weight:900; font-size:16px;">Your Tenants</div>
+        <div class="muted" style="margin-top:6px;">Your data is scoped to the selected tenant.</div>
+      </div>
+      <a class="btn primary" href="{% url 'tenants:create' %}">Create Tenant</a>
+    </div>
+
+    <div style="margin-top:14px; display:grid; gap:10px;">
+      {% if tenants %}
+        {% for t in tenants %}
+          <div class="panel" style="padding:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+              <div>
+                <div style="font-weight:900;">{{ t.name }}</div>
+                <div class="muted" style="margin-top:4px;">slug: {{ t.slug }}</div>
+              </div>
+              {% if current_tenant_id == t.id %}
+                <span class="btn" style="cursor:default; opacity:.75;">Current</span>
+              {% else %}
+                <a class="btn primary" href="{% url 'tenants:set' t.id %}">Use</a>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="muted">No tenants yet. Create one to start.</div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

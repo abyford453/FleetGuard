@@ -1,16 +1,44 @@
 {% extends "base.html" %}
 {% block page_title %}Vehicles{% endblock %}
-{% block page_subtitle %}Fleet inventory and vehicle profiles{% endblock %}
+{% block page_subtitle %}Tenant: {{ tenant.name }}{% endblock %}
 {% block content %}
-  {% include "partials/module_placeholder.html" with
-    module_title="Vehicles (Fleet Module)"
-    module_purpose="This module is the center of FleetGuard. Vehicles are the parent object for maintenance, fuel logs, inspections, and documents."
-    app_path="apps/fleet/"
-    urls_path="apps/fleet/urls.py"
-    views_path="apps/fleet/views.py"
-    templates_path="templates/fleet/"
-    planned_features=planned_features
-    routes=routes
-    template_files=template_files
-  %}
+  <div class="panel">
+    <form method="get" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
+      <div style="flex:1; min-width:240px;">
+        <input name="q" value="{{ q }}" placeholder="Search unit, VIN, plate, make, model..." />
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn" type="submit">Search</button>
+        <a class="btn" href="{% url 'fleet:vehicle_list' %}">Reset</a>
+        <a class="btn primary" href="{% url 'fleet:vehicle_create' %}">Add Vehicle</a>
+      </div>
+    </form>
+
+    <div style="margin-top:14px; display:grid; gap:10px;">
+      {% if vehicles %}
+        {% for v in vehicles %}
+          <div class="panel" style="padding:14px;">
+            <div style="display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;">
+              <div>
+                <div style="font-weight:900;">
+                  <a href="{% url 'fleet:vehicle_detail' v.id %}">
+                    {{ v.unit_number|default:"(No Unit #)" }} — {{ v.make }} {{ v.model }} {% if v.year %}({{ v.year }}){% endif %}
+                  </a>
+                </div>
+                <div class="muted" style="margin-top:4px;">
+                  Plate: {{ v.plate|default:"—" }} • VIN: {{ v.vin|default:"—" }} • Status: {{ v.get_status_display }}
+                </div>
+              </div>
+              <div style="display:flex; gap:10px;">
+                <a class="btn" href="{% url 'fleet:vehicle_update' v.id %}">Edit</a>
+                <a class="btn" href="{% url 'fleet:vehicle_delete' v.id %}">Delete</a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="muted">No vehicles yet. Click “Add Vehicle” to create your first one.</div>
+      {% endif %}
+    </div>
+  </div>
 {% endblock %}

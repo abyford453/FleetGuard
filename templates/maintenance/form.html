@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block page_title %}New Maintenance Record{% endblock %}
+{% block page_subtitle %}Log service performed on a vehicle{% endblock %}
+{% block content %}
+  {% include "partials/module_placeholder.html" with
+    module_title="Maintenance Create"
+    module_purpose="This will become the maintenance record form (vehicle, date, odometer, cost, notes)."
+    app_path="apps/maintenance/"
+    urls_path="apps/maintenance/urls.py"
+    views_path="apps/maintenance/views.py"
+    templates_path="templates/maintenance/"
+    planned_features=planned_features
+    routes=routes
+    template_files=template_files
+  %}
+{% endblock %}

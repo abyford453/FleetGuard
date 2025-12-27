@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block page_title %}New Inspection{% endblock %}
+{% block page_subtitle %}Record an inspection result{% endblock %}
+{% block content %}
+  {% include "partials/module_placeholder.html" with
+    module_title="Inspection Create"
+    module_purpose="This will become the inspection form (vehicle, date, inspector, pass/fail/needs attention, notes)."
+    app_path="apps/inspections/"
+    urls_path="apps/inspections/urls.py"
+    views_path="apps/inspections/views.py"
+    templates_path="templates/inspections/"
+    planned_features=planned_features
+    routes=routes
+    template_files=template_files
+  %}
+{% endblock %}

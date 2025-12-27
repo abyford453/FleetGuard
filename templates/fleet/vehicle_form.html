@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block page_title %}Vehicle Form{% endblock %}
+{% block page_subtitle %}Create or update a vehicle{% endblock %}
+{% block content %}
+  {% include "partials/module_placeholder.html" with
+    module_title="Vehicle Create/Update"
+    module_purpose="This will become the Vehicle CRUD form with validation and tenant-safe selections."
+    app_path="apps/fleet/"
+    urls_path="apps/fleet/urls.py"
+    views_path="apps/fleet/views.py"
+    templates_path="templates/fleet/"
+    planned_features=planned_features
+    routes=routes
+    template_files=template_files
+  %}
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block page_title %}Settings{% endblock %}
+{% block page_subtitle %}Account, tenant, permissions, preferences{% endblock %}
+{% block content %}
+  {% include "partials/module_placeholder.html" with
+    module_title="Settings Module"
+    module_purpose="Tenant-level settings, user roles, branding, preferences, and future billing controls."
+    app_path="apps/settings_app/"
+    urls_path="apps/settings_app/urls.py"
+    views_path="apps/settings_app/views.py"
+    templates_path="templates/settings_app/"
+    planned_features=planned_features
+    routes=routes
+    template_files=template_files
+  %}
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block page_title %}Vehicles{% endblock %}
+{% block page_subtitle %}Fleet inventory and vehicle profiles{% endblock %}
+{% block content %}
+  {% include "partials/module_placeholder.html" with
+    module_title="Vehicles (Fleet Module)"
+    module_purpose="This module is the center of FleetGuard. Vehicles are the parent object for maintenance, fuel logs, inspections, and documents."
+    app_path="apps/fleet/"
+    urls_path="apps/fleet/urls.py"
+    views_path="apps/fleet/views.py"
+    templates_path="templates/fleet/"
+    planned_features=planned_features
+    routes=routes
+    template_files=template_files
+  %}
+{% endblock %}

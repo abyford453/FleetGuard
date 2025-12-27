@@ -1,0 +1,55 @@
+<div style="display:grid; gap:14px;">
+  <div>
+    <div style="font-weight:950; font-size:16px;">{{ module_title }}</div>
+    <div class="muted" style="margin-top:4px;">{{ module_purpose }}</div>
+  </div>
+
+  <div style="display:grid; grid-template-columns: 1fr; gap:10px;">
+    <div style="padding:12px; border-radius:16px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.03);">
+      <div style="font-weight:900; margin-bottom:6px;">Where this lives</div>
+      <div class="muted" style="font-size:13px; line-height:1.5;">
+        <div><strong>App:</strong> {{ app_path }}</div>
+        <div><strong>URLs:</strong> {{ urls_path }}</div>
+        <div><strong>Views:</strong> {{ views_path }}</div>
+        <div><strong>Templates:</strong> {{ templates_path }}</div>
+      </div>
+    </div>
+
+    <div style="padding:12px; border-radius:16px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.03);">
+      <div style="font-weight:900; margin-bottom:6px;">Planned features</div>
+      <ul style="margin:0; padding-left:18px; line-height:1.6;" class="muted">
+        {% for item in planned_features %}
+          <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div style="padding:12px; border-radius:16px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.03);">
+      <div style="font-weight:900; margin-bottom:6px;">URLs and templates</div>
+      <div class="muted" style="font-size:13px; line-height:1.6;">
+        <div><strong>Routes:</strong></div>
+        <ul style="margin:6px 0 0; padding-left:18px;">
+          {% for r in routes %}
+            <li>{{ r }}</li>
+          {% endfor %}
+        </ul>
+
+        <div style="margin-top:10px;"><strong>Templates:</strong></div>
+        <ul style="margin:6px 0 0; padding-left:18px;">
+          {% for t in template_files %}
+            <li>{{ t }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div style="padding:12px; border-radius:16px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.03);">
+      <div style="font-weight:900; margin-bottom:6px;">Build rules (so we don’t break stuff)</div>
+      <ul style="margin:0; padding-left:18px; line-height:1.6;" class="muted">
+        <li><strong>NoReverseMatch protection:</strong> Template URL names must match <code>name="..."</code> in urls.py</li>
+        <li><strong>Tenant filtering (coming next):</strong> every query will filter by <code>request.tenant</code></li>
+        <li><strong>UI:</strong> App pages extend <code>base.html</code>. Login/Signup stay standalone.</li>
+      </ul>
+    </div>
+  </div>
+</div>

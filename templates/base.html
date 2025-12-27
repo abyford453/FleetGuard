@@ -1,0 +1,88 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>{% block title %}FleetGuard{% endblock %}</title>
+  <style>
+    :root{
+      --bg:#0b0b12;
+      --panel: rgba(255,255,255,.03);
+      --border: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.65);
+      --brand: rgba(37,214,255,.85);
+      --shadow: 0 12px 34px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% -10%, rgba(140,84,255,.35), transparent 60%),
+        radial-gradient(1000px 500px at 90% 10%, rgba(37,214,255,.22), transparent 55%),
+        var(--bg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    .app{display:grid; grid-template-columns:260px 1fr; min-height:100vh;}
+    .sidebar{padding:18px; border-right:1px solid var(--border); background: rgba(255,255,255,.02);}
+    .brand{padding:12px; border:1px solid var(--border); border-radius:16px; background: rgba(255,255,255,.04); box-shadow: var(--shadow); font-weight:900;}
+    .nav{margin-top:14px; display:flex; flex-direction:column; gap:8px;}
+    .nav a{padding:10px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.02); text-decoration:none; color:var(--text);}
+    .nav a:hover{border-color: rgba(37,214,255,.35); background: rgba(37,214,255,.08);}
+    .content{padding:22px;}
+    .topbar{display:flex; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap;}
+    .panel{border:1px solid var(--border); background: var(--panel); border-radius: var(--radius); box-shadow: var(--shadow); padding:16px;}
+    .btn{display:inline-flex; align-items:center; justify-content:center; padding:10px 14px; border-radius:14px; border:1px solid rgba(37,214,255,.35); background: rgba(37,214,255,.10); color:var(--text); font-weight:850; text-decoration:none;}
+    .btn:hover{background: rgba(37,214,255,.16);}
+    .muted{color:var(--muted);}
+    @media(max-width:980px){.app{grid-template-columns:1fr;}.sidebar{position:sticky;top:0;z-index:10;}}
+  </style>
+    <link rel="icon" href="{% static 'favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+    <script defer src="{% static 'js/theme.js' %}"></script>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">FleetGuard</div>
+      <nav class="nav">
+        <a href="{% url 'core:dashboard' %}">Dashboard</a>
+        <a href="{% url 'fleet:vehicle_list' %}">Vehicles</a>
+        <a href="{% url 'maintenance:list' %}">Maintenance</a>
+        <a href="{% url 'fuel:list' %}">Fuel</a>
+        <a href="{% url 'inspections:list' %}">Inspections</a>
+        <a href="{% url 'documents:document_list' %}">Documents</a>
+        <a href="{% url 'reports:index' %}">Reports</a>
+        <a href="{% url 'settings_app:index' %}">Settings</a>
+        <a href="{% url 'accounts:logout' %}">Logout</a>
+        <button class="btn" type="button" onclick="toggleTheme()" title="Toggle dark / light">Theme</button>
+</nav>
+      <div class="panel" style="margin-top:14px;">
+        {% if request.user.is_authenticated %}
+          <div style="font-weight:850;">{{ request.user.username }}</div>
+          <div class="muted" style="font-size:12px; margin-top:4px;">Tenant: (placeholder)</div>
+        {% else %}
+          <div class="muted">Not signed in</div>
+        {% endif %}
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <div>
+          <div style="font-size:20px; font-weight:950;">{% block page_title %}{% endblock %}</div>
+          <div class="muted" style="margin-top:2px;">{% block page_subtitle %}{% endblock %}</div>
+        </div>
+        <div>{% block top_actions %}{% endblock %}</div>
+      </div>
+
+      <div class="panel">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+</body>
+</html>

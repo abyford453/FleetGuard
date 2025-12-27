@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block page_title %}Documents{% endblock %}
+{% block page_subtitle %}Vehicle-related files and records{% endblock %}
+{% block content %}
+  {% include "partials/module_placeholder.html" with
+    module_title="Documents Module"
+    module_purpose="Store and manage files tied to vehicles (registration, insurance, warranties, PDFs)."
+    app_path="apps/documents/"
+    urls_path="apps/documents/urls.py"
+    views_path="apps/documents/views.py"
+    templates_path="templates/documents/"
+    planned_features=planned_features
+    routes=routes
+    template_files=template_files
+  %}
+{% endblock %}

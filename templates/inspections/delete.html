@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block page_title %}Delete Inspection{% endblock %}
+{% block page_subtitle %}Confirm delete{% endblock %}
+{% block content %}
+  {% include "partials/module_placeholder.html" with
+    module_title="Inspection Delete"
+    module_purpose="Confirmation page for deleting an inspection entry (tenant-safe)."
+    app_path="apps/inspections/"
+    urls_path="apps/inspections/urls.py"
+    views_path="apps/inspections/views.py"
+    templates_path="templates/inspections/"
+    planned_features=planned_features
+    routes=routes
+    template_files=template_files
+  %}
+{% endblock %}

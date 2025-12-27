@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block page_title %}Reports{% endblock %}
+{% block page_subtitle %}Analytics and exports (coming soon){% endblock %}
+{% block content %}
+  {% include "partials/module_placeholder.html" with
+    module_title="Reports Module"
+    module_purpose="Reporting dashboard for fleet: maintenance cost, upcoming due, fuel trends, inspection failures, export to CSV/PDF later."
+    app_path="apps/reports/"
+    urls_path="apps/reports/urls.py"
+    views_path="apps/reports/views.py"
+    templates_path="templates/reports/"
+    planned_features=planned_features
+    routes=routes
+    template_files=template_files
+  %}
+{% endblock %}

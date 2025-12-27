@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block page_title %}Delete Document{% endblock %}
+{% block page_subtitle %}Confirm delete{% endblock %}
+{% block content %}
+  {% include "partials/module_placeholder.html" with
+    module_title="Document Delete"
+    module_purpose="Confirmation page for deleting a document record (tenant-safe)."
+    app_path="apps/documents/"
+    urls_path="apps/documents/urls.py"
+    views_path="apps/documents/views.py"
+    templates_path="templates/documents/"
+    planned_features=planned_features
+    routes=routes
+    template_files=template_files
+  %}
+{% endblock %}

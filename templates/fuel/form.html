@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block page_title %}New Fuel Log{% endblock %}
+{% block page_subtitle %}Log a fuel fill-up{% endblock %}
+{% block content %}
+  {% include "partials/module_placeholder.html" with
+    module_title="Fuel Create"
+    module_purpose="This will become the fuel form (vehicle, date, gallons, cost, odometer, station)."
+    app_path="apps/fuel/"
+    urls_path="apps/fuel/urls.py"
+    views_path="apps/fuel/views.py"
+    templates_path="templates/fuel/"
+    planned_features=planned_features
+    routes=routes
+    template_files=template_files
+  %}
+{% endblock %}

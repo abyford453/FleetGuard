@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block page_title %}Delete Vehicle{% endblock %}
+{% block page_subtitle %}Confirm delete (tenant-safe){% endblock %}
+{% block content %}
+  {% include "partials/module_placeholder.html" with
+    module_title="Vehicle Delete"
+    module_purpose="Confirmation page. We will likely soft-delete or require elevated permission."
+    app_path="apps/fleet/"
+    urls_path="apps/fleet/urls.py"
+    views_path="apps/fleet/views.py"
+    templates_path="templates/fleet/"
+    planned_features=planned_features
+    routes=routes
+    template_files=template_files
+  %}
+{% endblock %}

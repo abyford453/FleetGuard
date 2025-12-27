@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block page_title %}Delete Maintenance Record{% endblock %}
+{% block page_subtitle %}Confirm delete{% endblock %}
+{% block content %}
+  {% include "partials/module_placeholder.html" with
+    module_title="Maintenance Delete"
+    module_purpose="Confirmation page for deleting a maintenance record (tenant-safe)."
+    app_path="apps/maintenance/"
+    urls_path="apps/maintenance/urls.py"
+    views_path="apps/maintenance/views.py"
+    templates_path="templates/maintenance/"
+    planned_features=planned_features
+    routes=routes
+    template_files=template_files
+  %}
+{% endblock %}

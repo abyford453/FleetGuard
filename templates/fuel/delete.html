@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block page_title %}Delete Fuel Log{% endblock %}
+{% block page_subtitle %}Confirm delete{% endblock %}
+{% block content %}
+  {% include "partials/module_placeholder.html" with
+    module_title="Fuel Delete"
+    module_purpose="Confirmation page for deleting a fuel entry (tenant-safe)."
+    app_path="apps/fuel/"
+    urls_path="apps/fuel/urls.py"
+    views_path="apps/fuel/views.py"
+    templates_path="templates/fuel/"
+    planned_features=planned_features
+    routes=routes
+    template_files=template_files
+  %}
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block page_title %}Vehicle Detail{% endblock %}
+{% block page_subtitle %}Vehicle profile and history{% endblock %}
+{% block content %}
+  {% include "partials/module_placeholder.html" with
+    module_title="Vehicle Detail"
+    module_purpose="This will show a vehicle’s full profile plus related tabs for maintenance, fuel, inspections, and documents."
+    app_path="apps/fleet/"
+    urls_path="apps/fleet/urls.py"
+    views_path="apps/fleet/views.py"
+    templates_path="templates/fleet/"
+    planned_features=planned_features
+    routes=routes
+    template_files=template_files
+  %}
+{% endblock %}

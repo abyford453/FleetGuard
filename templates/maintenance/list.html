@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block page_title %}Maintenance{% endblock %}
+{% block page_subtitle %}Service history, schedules, reminders{% endblock %}
+{% block content %}
+  {% include "partials/module_placeholder.html" with
+    module_title="Maintenance Module"
+    module_purpose="Track service records per vehicle (oil changes, brakes, tires, etc.) and later add schedules/reminders."
+    app_path="apps/maintenance/"
+    urls_path="apps/maintenance/urls.py"
+    views_path="apps/maintenance/views.py"
+    templates_path="templates/maintenance/"
+    planned_features=planned_features
+    routes=routes
+    template_files=template_files
+  %}
+{% endblock %}

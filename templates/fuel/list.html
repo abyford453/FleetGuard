@@ -1,16 +1,92 @@
 {% extends "base.html" %}
-{% block page_title %}Fuel Logs{% endblock %}
+{% block page_title %}Fuel{% endblock %}
 {% block page_subtitle %}Track fuel usage and costs{% endblock %}
 {% block content %}
-  {% include "partials/module_placeholder.html" with
-    module_title="Fuel Module"
-    module_purpose="Log fuel purchases and calculate MPG/cost trends later."
-    app_path="apps/fuel/"
-    urls_path="apps/fuel/urls.py"
-    views_path="apps/fuel/views.py"
-    templates_path="templates/fuel/"
-    planned_features=planned_features
-    routes=routes
-    template_files=template_files
-  %}
+
+<style>
+  .toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px;}
+  .searchbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .searchbar input,.searchbar select{min-width:220px;}
+  .panel{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:14px;box-shadow:0 12px 34px rgba(0,0,0,.25);}
+  table{width:100%;border-collapse:collapse;}
+  th,td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top;}
+  th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;}
+  .muted{opacity:.70;}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);text-decoration:none;}
+  .btn.primary{border-color:rgba(37,214,255,.35);}
+</style>
+
+<div class="toolbar">
+  <form class="searchbar" method="get">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search (unit, vendor, notes, make/model, plate/vin)">
+
+    <select name="vehicle">
+      <option value="">All Vehicles</option>
+      {% for v in vehicles %}
+        <option value="{{ v.id }}" {% if vehicle_id|stringformat:"s" == v.id|stringformat:"s" %}selected{% endif %}>
+          {% if v.unit_number %}Unit {{ v.unit_number }} — {% endif %}{% if v.year %}{{ v.year }} {% endif %}{{ v.make }} {{ v.model }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <button class="btn" type="submit">Filter</button>
+    <a class="btn" href="{% url 'fuel:list' %}">Reset</a>
+  </form>
+
+  <a class="btn primary" href="{% url 'fuel:fuel_create' %}">+ New Fuel Log</a>
+</div>
+
+<div class="panel">
+  {% if logs %}
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Vehicle</th>
+          <th>Gallons</th>
+          <th>Cost</th>
+          <th>Odometer</th>
+          <th>Vendor / Type</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in logs %}
+          <tr>
+            <td><strong>{{ f.fuel_date }}</strong></td>
+            <td>
+              <div><strong>{% if f.vehicle.unit_number %}Unit {{ f.vehicle.unit_number }}{% else %}Vehicle{% endif %}</strong></div>
+              <div class="muted">{% if f.vehicle.year %}{{ f.vehicle.year }} {% endif %}{{ f.vehicle.make }} {{ f.vehicle.model }}</div>
+              {% if f.vehicle.plate %}<div class="muted">Plate: {{ f.vehicle.plate }}</div>{% endif %}
+            </td>
+            <td>{{ f.gallons }}</td>
+            <td>
+              {% if f.cost is not None %}
+                ${{ f.cost }}
+              {% else %}
+                <span class="muted">—</span>
+              {% endif %}
+            </td>
+            <td>{% if f.odometer %}{{ f.odometer }} mi{% else %}<span class="muted">—</span>{% endif %}</td>
+            <td>
+              <div>{{ f.vendor|default:"—" }}</div>
+              <div class="muted">{{ f.fuel_type|default:"" }}</div>
+            </td>
+            <td>
+              <div class="actions">
+                <a class="btn" href="{% url 'fuel:fuel_update' f.id %}">Edit</a>
+                <a class="btn" href="{% url 'fuel:fuel_delete' f.id %}">Delete</a>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No fuel logs yet. Add your first fill-up.</p>
+    <a class="btn primary" href="{% url 'fuel:fuel_create' %}">+ New Fuel Log</a>
+  {% endif %}
+</div>
+
 {% endblock %}

@@ -4,7 +4,9 @@ from . import views
 app_name = "fuel"
 
 urlpatterns = [
-    path("", views.list_logs, name="list"),
-    path("new/", views.create_log, name="new"),
-    path("<int:pk>/delete/", views.delete_log, name="delete"),
+    # Sidebar expects: {% url 'fuel:list' %}
+    path("", views.fuel_list, name="list"),
+    path("new/", views.fuel_create, name="fuel_create"),
+    path("<int:pk>/edit/", views.fuel_update, name="fuel_update"),
+    path("<int:pk>/delete/", views.fuel_delete, name="fuel_delete"),
 ]

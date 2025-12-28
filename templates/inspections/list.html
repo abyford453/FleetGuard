@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block page_title %}Inspections{% endblock %}
-{% block page_subtitle %}Track inspection results per vehicle{% endblock %}
+{% block page_subtitle %}Assign, track, and complete vehicle inspections{% endblock %}
 {% block content %}
 
 <style>
   .toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px;}
   .searchbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-  .searchbar input,.searchbar select{min-width:200px;}
+  .searchbar input,.searchbar select{min-width:190px;}
   .panel{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:14px;box-shadow:0 12px 34px rgba(0,0,0,.25);}
   table{width:100%;border-collapse:collapse;}
   th,td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top;}
@@ -16,6 +16,8 @@
   .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);text-decoration:none;}
   .btn.primary{border-color:rgba(37,214,255,.35);}
   .pill{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);font-size:12px;font-weight:750;}
+  .pill.warn{border-color:rgba(255,180,60,.35);}
+  .pill.danger{border-color:rgba(255,80,80,.35);}
 </style>
 
 <div class="toolbar">
@@ -31,6 +33,13 @@
       {% endfor %}
     </select>
 
+    <select name="status">
+      <option value="">All Status</option>
+      {% for key,label in status_choices %}
+        <option value="{{ key }}" {% if status == key %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+
     <select name="result">
       <option value="">All Results</option>
       {% for key,label in result_choices %}
@@ -38,11 +47,23 @@
       {% endfor %}
     </select>
 
+    <label style="display:inline-flex;align-items:center;gap:8px;opacity:.9;">
+      <input type="checkbox" name="my" value="1" {% if my == "1" %}checked{% endif %}>
+      My Inspections
+    </label>
+
+    <label style="display:inline-flex;align-items:center;gap:8px;opacity:.9;">
+      <input type="checkbox" name="overdue" value="1" {% if overdue == "1" %}checked{% endif %}>
+      Overdue
+    </label>
+
     <button class="btn" type="submit">Filter</button>
     <a class="btn" href="{% url 'inspections:list' %}">Reset</a>
   </form>
 
-  <a class="btn primary" href="{% url 'inspections:inspection_create' %}">+ New Inspection</a>
+  <a class="btn primary" href="{% url 'inspections:inspection_create' %}">
+    {% if can_assign %}+ Assign Inspection{% else %}+ New Inspection{% endif %}
+  </a>
 </div>
 
 <div class="panel">
@@ -53,8 +74,9 @@
           <th>Date</th>
           <th>Vehicle</th>
           <th>Type</th>
-          <th>Result</th>
-          <th>Odometer</th>
+          <th>Assigned</th>
+          <th>Due</th>
+          <th>Status / Result</th>
           <th></th>
         </tr>
       </thead>
@@ -69,13 +91,36 @@
             </td>
             <td>{{ i.inspection_type|default:"—" }}</td>
             <td>
-              <span class="pill">{{ i.get_result_display }}</span>
+              {% if i.assigned_to %}
+                {{ i.assigned_to }}
+              {% else %}
+                <span class="muted">—</span>
+              {% endif %}
             </td>
-            <td>{% if i.odometer %}{{ i.odometer }} mi{% else %}<span class="muted">—</span>{% endif %}</td>
+            <td>
+              {% if i.due_date %}
+                {% if i.status != "completed" and i.due_date < today %}
+                  <span class="pill danger">{{ i.due_date }}</span>
+                {% else %}
+                  {{ i.due_date }}
+                {% endif %}
+              {% else %}
+                <span class="muted">—</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="pill">{{ i.get_status_display }}</span>
+              &nbsp;
+              <span class="pill {% if i.result == 'fail' %}danger{% endif %}">{{ i.get_result_display }}</span>
+            </td>
             <td>
               <div class="actions">
-                <a class="btn" href="{% url 'inspections:inspection_update' i.id %}">Edit</a>
-                <a class="btn" href="{% url 'inspections:inspection_delete' i.id %}">Delete</a>
+                <a class="btn" href="{% url 'inspections:inspection_update' i.id %}">
+                  {% if i.status == "completed" %}View{% else %}Open{% endif %}
+                </a>
+                {% if can_assign %}
+                  <a class="btn" href="{% url 'inspections:inspection_delete' i.id %}">Delete</a>
+                {% endif %}
               </div>
             </td>
           </tr>
@@ -83,8 +128,10 @@
       </tbody>
     </table>
   {% else %}
-    <p class="muted">No inspections yet. Add your first inspection.</p>
-    <a class="btn primary" href="{% url 'inspections:inspection_create' %}">+ New Inspection</a>
+    <p class="muted">No inspections yet.</p>
+    <a class="btn primary" href="{% url 'inspections:inspection_create' %}">
+      {% if can_assign %}+ Assign Inspection{% else %}+ New Inspection{% endif %}
+    </a>
   {% endif %}
 </div>
 

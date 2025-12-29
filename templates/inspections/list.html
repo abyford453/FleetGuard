@@ -12,13 +12,49 @@
   th,td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top;}
   th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;}
   .muted{opacity:.70;}
-  .actions{display:flex;gap:8px;flex-wrap:wrap;}
-  .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);text-decoration:none;}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);text-decoration:none;white-space:nowrap;}
   .btn.primary{border-color:rgba(37,214,255,.35);}
+  .btn.warn{border-color:rgba(255,200,60,.35);}
   .pill{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);font-size:12px;font-weight:750;}
-  .pill.warn{border-color:rgba(255,180,60,.35);}
   .pill.danger{border-color:rgba(255,80,80,.35);}
+
+  /* "Check engine" / alert dot */
+  .alert-icon{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:22px;height:22px;border-radius:999px;
+    border:1px solid rgba(255,200,60,.45);
+    background:rgba(255,200,60,.12);
+    box-shadow:0 8px 20px rgba(0,0,0,.20);
+    text-decoration:none;
+    position:relative;
+  }
+  .alert-icon::before{
+    content:"!";
+    font-weight:950;
+    font-size:14px;
+    line-height:1;
+    opacity:.95;
+  }
+  .alert-icon:hover{transform:translateY(-1px);}
+  .alert-banner{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:12px 14px;border-radius:16px;
+    border:1px solid rgba(255,200,60,.35);
+    background:rgba(255,200,60,.10);
+    margin-bottom:12px;
+  }
 </style>
+
+{% if open_alerts_count and open_alerts_count > 0 %}
+  <div class="alert-banner">
+    <div>
+      <strong>Alerts:</strong> You have <strong>{{ open_alerts_count }}</strong> open inspection alert{{ open_alerts_count|pluralize }}.
+      <span class="muted">Some vehicles may need attention.</span>
+    </div>
+    <a class="btn warn" href="{% url 'inspections:alerts' %}">View Alerts</a>
+  </div>
+{% endif %}
 
 <div class="toolbar">
   <form class="searchbar" method="get">
@@ -61,9 +97,16 @@
     <a class="btn" href="{% url 'inspections:list' %}">Reset</a>
   </form>
 
-  <a class="btn primary" href="{% url 'inspections:inspection_create' %}">
-    {% if can_assign %}+ Assign Inspection{% else %}+ New Inspection{% endif %}
-  </a>
+  <div class="actions">
+    {% if can_manage_alerts %}
+      <a class="btn warn" href="{% url 'inspections:alerts' %}">
+        Alerts{% if open_alerts_count and open_alerts_count > 0 %} ({{ open_alerts_count }}){% endif %}
+      </a>
+    {% endif %}
+    <a class="btn primary" href="{% url 'inspections:inspection_create' %}">
+      {% if can_assign %}+ Assign Inspection{% else %}+ New Inspection{% endif %}
+    </a>
+  </div>
 </div>
 
 <div class="panel">
@@ -71,6 +114,7 @@
     <table>
       <thead>
         <tr>
+          <th></th>
           <th>Date</th>
           <th>Vehicle</th>
           <th>Type</th>
@@ -83,6 +127,13 @@
       <tbody>
         {% for i in inspections %}
           <tr>
+            <td style="width:34px;">
+              {% if i.alert and i.alert.status != "closed" %}
+                <a class="alert-icon" href="{% url 'inspections:alert_update' i.alert.id %}" title="Open Alert"></a>
+              {% else %}
+                <span class="muted"> </span>
+              {% endif %}
+            </td>
             <td><strong>{{ i.inspection_date }}</strong></td>
             <td>
               <div><strong>{% if i.vehicle.unit_number %}Unit {{ i.vehicle.unit_number }}{% else %}Vehicle{% endif %}</strong></div>
@@ -129,9 +180,14 @@
     </table>
   {% else %}
     <p class="muted">No inspections yet.</p>
-    <a class="btn primary" href="{% url 'inspections:inspection_create' %}">
-      {% if can_assign %}+ Assign Inspection{% else %}+ New Inspection{% endif %}
-    </a>
+    <div class="actions">
+      {% if can_manage_alerts %}
+        <a class="btn warn" href="{% url 'inspections:alerts' %}">Alerts</a>
+      {% endif %}
+      <a class="btn primary" href="{% url 'inspections:inspection_create' %}">
+        {% if can_assign %}+ Assign Inspection{% else %}+ New Inspection{% endif %}
+      </a>
+    </div>
   {% endif %}
 </div>
 

@@ -36,6 +36,16 @@
         <option value="{{ key }}" {% if doc_type == key %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
+    <label style="display:inline-flex;align-items:center;gap:8px;opacity:.9;">
+      <input type="checkbox" name="expired" value="1" {% if expired == "1" %}checked{% endif %}>
+      Expired
+    </label>
+
+    <label style="display:inline-flex;align-items:center;gap:8px;opacity:.9;">
+      <input type="checkbox" name="expiring" value="1" {% if expiring == "1" %}checked{% endif %}>
+      Expiring (30d)
+    </label>
+
     <button class="btn" type="submit">Filter</button>
     <a class="btn" href="{% url 'documents:document_list' %}">Reset</a>
   </form>
@@ -73,7 +83,11 @@
             </td>
             <td>
               {% if d.expires_on %}
-                {{ d.expires_on }}
+                {% if d.expires_on < today %}
+                  <span style="padding:4px 10px;border-radius:999px;border:1px solid rgba(255,80,80,.35);background:rgba(255,80,80,.08);font-weight:850;">{{ d.expires_on }}</span>
+                {% else %}
+                  {{ d.expires_on }}
+                {% endif %}
               {% else %}
                 <span class="muted">—</span>
               {% endif %}

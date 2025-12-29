@@ -21,6 +21,9 @@ def document_list(request):
     vehicle_id = (request.GET.get("vehicle") or "").strip()
     doc_type = (request.GET.get("doc_type") or "").strip()
 
+    expired = (request.GET.get("expired") or "").strip()
+    expiring = (request.GET.get("expiring") or "").strip()
+
     if q:
         qs = qs.filter(
             Q(title__icontains=q) |
@@ -38,6 +41,17 @@ def document_list(request):
     if doc_type:
         qs = qs.filter(doc_type=doc_type)
 
+
+    # Expiration filters
+    today = timezone.localdate()
+    soon = today + timezone.timedelta(days=30)
+
+    if expired == "1":
+        qs = qs.filter(expires_on__isnull=False, expires_on__lt=today)
+
+    if expiring == "1":
+        qs = qs.filter(expires_on__isnull=False, expires_on__gte=today, expires_on__lte=soon)
+
     vehicles = tenant.vehicles.all().order_by("unit_number", "year", "make", "model")
 
     return render(
@@ -50,6 +64,8 @@ def document_list(request):
             "vehicle_id": vehicle_id,
             "doc_type": doc_type,
             "doc_types": VehicleDocument.TYPE_CHOICES,
+            "expired": expired,
+            "expiring": expiring,
             "today": timezone.localdate(),
         },
     )

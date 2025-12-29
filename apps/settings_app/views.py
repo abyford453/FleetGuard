@@ -1,5 +1,10 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import reverse
+
+from .forms import TenantSettingsForm
+
 
 @login_required
 def index(request):
@@ -13,7 +18,12 @@ def index(request):
                 {"label": "Tenant", "value": str(tenant) if tenant else "Not selected"},
                 {"label": "Tenant ID", "value": getattr(tenant, "id", "—")},
             ],
-            "cta": {"label": "Edit organization", "hint": "Coming next"},
+            "cta": {
+                "label": "Edit organization",
+                "enabled": bool(tenant),
+                "url": reverse("settings_app:organization_edit") if tenant else None,
+                "hint": "Edit active tenant details",
+            },
         },
         {
             "title": "Users & Roles",
@@ -22,7 +32,7 @@ def index(request):
                 {"label": "Status", "value": "Planned"},
                 {"label": "Includes", "value": "Roles, permissions, invites"},
             ],
-            "cta": {"label": "Manage users", "hint": "Coming soon"},
+            "cta": {"label": "Manage users", "enabled": False, "url": None, "hint": "Coming soon"},
         },
         {
             "title": "Billing",
@@ -31,7 +41,7 @@ def index(request):
                 {"label": "Status", "value": "Planned"},
                 {"label": "Provider", "value": "Stripe (later)"},
             ],
-            "cta": {"label": "View billing", "hint": "Coming later"},
+            "cta": {"label": "View billing", "enabled": False, "url": None, "hint": "Coming later"},
         },
         {
             "title": "Appearance",
@@ -40,7 +50,7 @@ def index(request):
                 {"label": "Theme", "value": "Global theme.css"},
                 {"label": "Per-user prefs", "value": "Planned"},
             ],
-            "cta": {"label": "Customize", "hint": "Coming later"},
+            "cta": {"label": "Customize", "enabled": False, "url": None, "hint": "Coming later"},
         },
         {
             "title": "Security",
@@ -49,7 +59,7 @@ def index(request):
                 {"label": "Status", "value": "Planned"},
                 {"label": "Audit log", "value": "Planned"},
             ],
-            "cta": {"label": "Review security", "hint": "Coming later"},
+            "cta": {"label": "Review security", "enabled": False, "url": None, "hint": "Coming later"},
         },
     ]
 
@@ -59,3 +69,24 @@ def index(request):
         "user_display": request.user.get_username(),
     }
     return render(request, "settings_app/index.html", ctx)
+
+
+@login_required
+def organization_edit(request):
+    tenant = getattr(request, "tenant", None)
+    if not tenant:
+        messages.error(request, "No active tenant selected. Please select a tenant first.")
+        return redirect("settings_app:index")
+
+    if request.method == "POST":
+        form = TenantSettingsForm(request.POST, instance=tenant)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Organization settings updated.")
+            return redirect("settings_app:index")
+        else:
+            messages.error(request, "Please fix the errors below.")
+    else:
+        form = TenantSettingsForm(instance=tenant)
+
+    return render(request, "settings_app/organization_form.html", {"tenant": tenant, "form": form})

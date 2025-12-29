@@ -4,7 +4,13 @@ from . import views
 app_name = "maintenance"
 
 urlpatterns = [
-    path("", views.list_records, name="list"),
-    path("new/", views.create_record, name="new"),
-    path("<int:pk>/delete/", views.delete_record, name="delete"),
+    # Alias name to match base.html nav: {% url 'maintenance:list' %}
+    path("", views.maintenance_list, name="list"),
+
+    # Keep our explicit name too (used by redirects, etc.)
+    path("", views.maintenance_list, name="maintenance_list"),
+
+    path("new/", views.maintenance_create, name="maintenance_create"),
+    path("<int:pk>/edit/", views.maintenance_update, name="maintenance_update"),
+    path("<int:pk>/delete/", views.maintenance_delete, name="maintenance_delete"),
 ]

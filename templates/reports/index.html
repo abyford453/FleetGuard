@@ -61,19 +61,30 @@
   }
 </style>
 
+
 <div class="section panel">
   <div class="row">
     <div>
-      <div style="font-weight:950;font-size:18px;">Exports (CSV)</div>
-      <div class="muted">Download tenant-scoped data for analysis.</div>
+      <div style="font-weight:950;font-size:18px;">Exports</div>
+      <div class="muted">CSV for quick dumps, Excel for clean spreadsheets, Print for PDF-ready reports.</div>
     </div>
     <div class="row" style="justify-content:flex-end;">
-      <a class="btn primary" href="{% url 'reports:export_fuel_csv' %}">Download Fuel CSV</a>
-      <a class="btn" href="{% url 'reports:export_inspections_csv' %}">Download Inspections CSV</a>
-      <a class="btn" href="{% url 'reports:export_inspection_alerts_csv' %}">Download Alerts CSV</a>
-      <a class="btn" href="{% url 'reports:export_documents_csv' %}">Download Documents CSV</a>
+      <a class="btn primary" href="{% url 'reports:print_report' %}" target="_blank">Print / Save PDF</a>
+
+      <a class="btn" href="{% url 'reports:export_fuel_csv' %}">Fuel CSV</a>
+      <a class="btn" href="{% url 'reports:export_fuel_xlsx' %}">Fuel Excel</a>
+
+      <a class="btn" href="{% url 'reports:export_inspections_csv' %}">Inspections CSV</a>
+      <a class="btn" href="{% url 'reports:export_inspections_xlsx' %}">Inspections Excel</a>
+
+      <a class="btn" href="{% url 'reports:export_inspection_alerts_csv' %}">Alerts CSV</a>
+      <a class="btn" href="{% url 'reports:export_inspection_alerts_xlsx' %}">Alerts Excel</a>
+
+      <a class="btn" href="{% url 'reports:export_documents_csv' %}">Documents CSV</a>
+      <a class="btn" href="{% url 'reports:export_documents_xlsx' %}">Documents Excel</a>
     </div>
   </div>
+</div>
 </div>
 
 <div class="section">

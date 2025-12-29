@@ -8,7 +8,7 @@
     <div>
       <div style="font-weight:850; font-size:16px; margin-bottom:4px;">Tenant Members</div>
       <div style="opacity:.85; font-size:13px;">
-        Tenant-scoped membership and roles. Role changes and removals are enabled. Invites are planned.
+        Tenant-scoped membership and roles. Adding/removing users will be enabled later.
       </div>
       <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
         <span class="badge badge-muted">Members: {{ member_count }}</span>
@@ -18,10 +18,8 @@
 
     <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
       <a class="btn btn-secondary" href="{% url 'settings_app:index' %}">Back to Settings</a>
-      <a class="btn btn-secondary" href="{% url 'settings_app:users_invite' %}" title="Invites are planned (opens details)">Invite user</a>
-      <a class="btn" href="{% url 'settings_app:user_add' %}">Add user</a>
       <button class="btn" type="button" disabled aria-disabled="true" title="Coming later">
-        Add user
+        Add User (Coming Later)
       </button>
     </div>
   </div>
@@ -85,7 +83,7 @@
   </div>
 
   <div style="margin-top:12px; opacity:.75; font-size:12px;">
-    Admin-only page. Enabled: role changes and member removal. Planned: invites and audit logging.
+    Admin-only page. Next steps: invites, role changes, removals, and audit logging.
   </div>
 </div>
 {% endblock %}

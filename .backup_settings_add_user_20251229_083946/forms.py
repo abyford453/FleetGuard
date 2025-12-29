@@ -39,37 +39,3 @@ class TenantSettingsForm(forms.ModelForm):
                 "Alert days cannot be greater than default inspection due days."
             )
         return cleaned
-
-from django.contrib.auth import get_user_model
-from django.contrib.auth.password_validation import validate_password
-
-User = get_user_model()
-
-class TenantUserCreateForm(forms.Form):
-    username = forms.CharField(max_length=150)
-    email = forms.EmailField(required=False)
-    first_name = forms.CharField(max_length=150, required=False)
-    last_name = forms.CharField(max_length=150, required=False)
-    role = forms.ChoiceField(choices=[("user","User"),("admin","Admin")], initial="user")
-    password1 = forms.CharField(widget=forms.PasswordInput, label="Password")
-    password2 = forms.CharField(widget=forms.PasswordInput, label="Confirm password")
-
-    def clean_username(self):
-        username = self.cleaned_data["username"].strip()
-        if User.objects.filter(username=username).exists():
-            raise forms.ValidationError("That username already exists.")
-        return username
-
-    def clean(self):
-        cleaned = super().clean()
-        p1 = cleaned.get("password1")
-        p2 = cleaned.get("password2")
-        if p1 and p2 and p1 != p2:
-            self.add_error("password2", "Passwords do not match.")
-        if p1:
-            try:
-                validate_password(p1)
-            except Exception as e:
-                self.add_error("password1", e)
-        return cleaned
-

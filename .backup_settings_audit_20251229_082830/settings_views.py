@@ -2,13 +2,12 @@ from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import get_user_model
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect
 from django.urls import reverse
 
 from apps.tenants.models import TenantMembership, TenantAuditEvent
-from .forms import TenantSettingsForm, TenantUserCreateForm
+from .forms import TenantSettingsForm
 
 
 def _get_membership(request):
@@ -349,45 +348,3 @@ def audit_log(request):
         .all()[:200]
     )
     return render(request, "settings_app/audit_log.html", {"tenant": tenant, "events": events})
-
-
-@login_required
-@tenant_admin_required
-def users_invite(request):
-    """
-    Admin-only stub for future invites.
-    No emails, no tokens yet. Just a clean placeholder page.
-    """
-    tenant = getattr(request, "tenant", None)
-    return render(request, "settings_app/users_invite.html", {"tenant": tenant})
-
-
-@login_required
-@tenant_admin_required
-def user_add(request):
-    tenant = getattr(request, "tenant", None)
-    User = get_user_model()
-
-    if request.method == "POST":
-        form = TenantUserCreateForm(request.POST)
-        if form.is_valid():
-            user = User.objects.create_user(
-                username=form.cleaned_data["username"],
-                email=form.cleaned_data.get("email", "") or "",
-                password=form.cleaned_data["password1"],
-                first_name=form.cleaned_data.get("first_name", "") or "",
-                last_name=form.cleaned_data.get("last_name", "") or "",
-            )
-            TenantMembership.objects.create(
-                tenant=tenant,
-                user=user,
-                role=form.cleaned_data["role"],
-            )
-            messages.success(request, "User created and added to tenant.")
-            return redirect("settings_app:users_list")
-        messages.error(request, "Please fix the errors below.")
-    else:
-        form = TenantUserCreateForm()
-
-    return render(request, "settings_app/user_add_form.html", {"tenant": tenant, "form": form})
-

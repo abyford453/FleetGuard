@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block page_title %}Maintenance{% endblock %}
+{% block page_subtitle %}Track service history by vehicle{% endblock %}
+{% block content %}
+
+<style>
+  .toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px;}
+  .searchbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .searchbar input,.searchbar select{min-width:220px;}
+  .panel{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:14px;box-shadow:0 12px 34px rgba(0,0,0,.25);}
+  table{width:100%;border-collapse:collapse;}
+  th,td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top;}
+  th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;}
+  .muted{opacity:.70;}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);text-decoration:none;}
+  .btn.primary{border-color:rgba(37,214,255,.35);}
+</style>
+
+<div class="toolbar">
+  <form class="searchbar" method="get">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search (vehicle, vendor, description, category)">
+
+    <select name="vehicle">
+      <option value="">All Vehicles</option>
+      {% if vehicles %}
+        {% for v in vehicles %}
+          <option value="{{ v.id }}" {% if vehicle_id|stringformat:"s" == v.id|stringformat:"s" %}selected{% endif %}>
+            {{ v.name }}{% if v.unit_number %} ({{ v.unit_number }}){% endif %}
+          </option>
+        {% endfor %}
+      {% endif %}
+    </select>
+
+    <button class="btn" type="submit">Filter</button>
+    <a class="btn" href="{% url 'maintenance:maintenance_list' %}">Reset</a>
+  </form>
+
+  <a class="btn primary" href="{% url 'maintenance:maintenance_create' %}">+ New Record</a>
+</div>
+
+<div class="panel">
+  {% if records %}
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Vehicle</th>
+          <th>Description</th>
+          <th>Vendor</th>
+          <th>Cost</th>
+          <th>Next Due</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+          <tr>
+            <td>
+              <div><strong>{{ r.service_date }}</strong></div>
+              {% if r.odometer %}<div class="muted">{{ r.odometer }} mi</div>{% endif %}
+              {% if r.category %}<div class="muted">{{ r.category }}</div>{% endif %}
+            </td>
+            <td>
+              <div><strong>{{ r.vehicle.name }}</strong></div>
+              {% if r.vehicle.unit_number %}<div class="muted">Unit {{ r.vehicle.unit_number }}</div>{% endif %}
+            </td>
+            <td>{{ r.description }}</td>
+            <td class="muted">{{ r.vendor|default:"—" }}</td>
+            <td>
+              {% if r.cost is not None %}
+                ${{ r.cost }}
+              {% else %}
+                <span class="muted">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if r.next_due_date %}<div>{{ r.next_due_date }}</div>{% endif %}
+              {% if r.next_due_odometer %}<div class="muted">{{ r.next_due_odometer }} mi</div>{% endif %}
+              {% if not r.next_due_date and not r.next_due_odometer %}<span class="muted">—</span>{% endif %}
+            </td>
+            <td>
+              <div class="actions">
+                <a class="btn" href="{% url 'maintenance:maintenance_update' r.id %}">Edit</a>
+                <a class="btn" href="{% url 'maintenance:maintenance_delete' r.id %}">Delete</a>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No maintenance records yet. Add your first service record.</p>
+    <a class="btn primary" href="{% url 'maintenance:maintenance_create' %}">+ New Record</a>
+  {% endif %}
+</div>
+
+{% endblock %}

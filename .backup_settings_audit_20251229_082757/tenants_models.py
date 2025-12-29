@@ -69,33 +69,3 @@ class TenantMembership(models.Model):
 
     def __str__(self):
         return f"{self.user} → {self.tenant} ({self.role})"
-
-
-class TenantAuditEvent(models.Model):
-    """
-    Tenant-scoped audit events (read-only in UI).
-    Used to record membership + settings changes.
-    """
-    ACTION_ORG_UPDATED = "org.updated"
-    ACTION_MEMBER_REMOVED = "member.removed"
-    ACTION_ROLE_CHANGED = "member.role_changed"
-
-    ACTION_CHOICES = [
-        (ACTION_ORG_UPDATED, "Organization Updated"),
-        (ACTION_MEMBER_REMOVED, "Member Removed"),
-        (ACTION_ROLE_CHANGED, "Role Changed"),
-    ]
-
-    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="audit_events")
-    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="tenant_audit_events")
-    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
-    message = models.CharField(max_length=255, blank=True, default="")
-    meta = models.JSONField(default=dict, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["-created_at"]
-
-    def __str__(self):
-        who = getattr(self.actor, "username", "system")
-        return f"[{self.tenant.slug}] {self.action} by {who}"

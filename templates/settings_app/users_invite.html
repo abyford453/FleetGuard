@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block page_title %}Invite User{% endblock %}
+{% block page_subtitle %}Tenant: {{ tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom:14px;">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+    <div>
+      <div style="font-weight:850; font-size:16px; margin-bottom:4px;">Invites are not enabled yet</div>
+      <div style="opacity:.85; font-size:13px; max-width:780px;">
+        This screen is reserved for the future invite flow (email invites or join links). For now, users must be created by an admin and
+        linked to the tenant via membership.
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+      <a class="btn btn-secondary" href="{% url 'settings_app:users_list' %}">Back to Users</a>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div style="font-weight:800; margin-bottom:8px;">Planned invite options</div>
+  <ul style="margin:0; padding-left:18px; opacity:.9;">
+    <li>Email invite with one-time token</li>
+    <li>Time-limited join link</li>
+    <li>Default role selection (User/Admin)</li>
+    <li>Audit log entries for invite + acceptance</li>
+  </ul>
+
+  <div style="margin-top:12px; opacity:.7; font-size:12px;">
+    Coming later: this will be enabled once we finalize the role/permission model.
+  </div>
+</div>
+{% endblock %}

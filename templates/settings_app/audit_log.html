@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block page_title %}Audit Log{% endblock %}
+{% block page_subtitle %}Tenant-scoped activity (latest first){% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom:14px;">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+    <div>
+      <div style="font-weight:850; font-size:16px; margin-bottom:4px;">{{ tenant.name }}</div>
+      <div style="opacity:.8; font-size:13px;">
+        Showing the latest 200 events. This log is tenant-scoped and admin-only.
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+      <a class="btn btn-secondary" href="{% url 'settings_app:index' %}">Back to Settings</a>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div style="overflow:auto;">
+    <table class="table" style="width:100%;">
+      <thead>
+        <tr>
+          <th style="min-width:180px;">Time</th>
+          <th style="min-width:160px;">Actor</th>
+          <th style="min-width:180px;">Action</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in events %}
+          <tr>
+            <td style="opacity:.85;">{{ e.created_at|date:"Y-m-d H:i" }}</td>
+            <td style="font-weight:750;">{% if e.actor %}{{ e.actor.get_username }}{% else %}system{% endif %}</td>
+            <td style="font-weight:750;">{{ e.get_action_display }}</td>
+            <td style="opacity:.9;">{{ e.message }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="4" style="opacity:.8;">No audit events yet.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

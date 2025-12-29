@@ -2,13 +2,12 @@ from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import get_user_model
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect
 from django.urls import reverse
 
-from apps.tenants.models import TenantMembership, TenantAuditEvent
-from .forms import TenantSettingsForm, TenantUserCreateForm
+from apps.tenants.models import TenantMembership
+from .forms import TenantSettingsForm
 
 
 def _get_membership(request):
@@ -28,28 +27,6 @@ def _get_membership(request):
         .first()
     )
 
-
-
-
-def _audit(request, action: str, message: str = "", meta: dict | None = None) -> None:
-    """
-    Best-effort tenant-scoped audit writer. Never blocks the request.
-    """
-    try:
-        tenant = getattr(request, "tenant", None)
-        user = getattr(request, "user", None)
-        if not tenant:
-            return
-        TenantAuditEvent.objects.create(
-            tenant=tenant,
-            actor=user if getattr(user, "is_authenticated", False) else None,
-            action=action,
-            message=message or "",
-            meta=meta or {},
-        )
-    except Exception:
-        # Intentionally swallow audit errors (do not break main workflows)
-        return
 
 def _is_tenant_admin(membership: TenantMembership | None) -> bool:
     return bool(membership and membership.role == TenantMembership.ROLE_ADMIN)
@@ -132,20 +109,6 @@ def index(request):
             },
         },
         {
-            "title": "Audit Log",
-            "desc": "Track tenant-scoped changes to settings and membership.",
-            "items": [
-                {"label": "Scope", "value": "Tenant-scoped"},
-                {"label": "Visibility", "value": "Admins only"},
-            ],
-            "cta": {
-                "label": "View audit log",
-                "enabled": bool(tenant) and is_admin,
-                "url": reverse("settings_app:audit_log") if (tenant and is_admin) else None,
-                "hint": "Admin only" if tenant and not is_admin else "View recent activity",
-            },
-        },
-        {
             "title": "Coming Later",
             "desc": "Planned upgrades (not enabled yet).",
             "items": [
@@ -181,7 +144,6 @@ def organization_edit(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Organization settings updated.")
-            _audit(request, TenantAuditEvent.ACTION_ORG_UPDATED, message="Organization settings updated.")
             return redirect("settings_app:index")
         messages.error(request, "Please fix the errors below.")
     else:
@@ -271,7 +233,6 @@ def user_remove_confirm(request, membership_id: int):
         target_name = target.user.get_full_name() or target.user.get_username()
         target.delete()
         messages.success(request, f"Removed {target_name} from the tenant.")
-        _audit(request, TenantAuditEvent.ACTION_MEMBER_REMOVED, message=f"Removed {target_name}", meta={"removed_user": target.user.get_username()})
         return redirect("settings_app:users_list")
 
     return render(
@@ -335,59 +296,4 @@ def user_role_update(request, membership_id: int):
     target.save(update_fields=["role"])
     target_name = target.user.get_full_name() or target.user.get_username()
     messages.success(request, f"Updated role for {target_name}.")
-    _audit(request, TenantAuditEvent.ACTION_ROLE_CHANGED, message=f"Role changed for {target_name}", meta={"user": target.user.get_username(), "new_role": new_role})
     return redirect("settings_app:users_list")
-
-@login_required
-@tenant_admin_required
-def audit_log(request):
-    tenant = getattr(request, "tenant", None)
-    events = (
-        TenantAuditEvent.objects
-        .filter(tenant=tenant)
-        .select_related("actor")
-        .all()[:200]
-    )
-    return render(request, "settings_app/audit_log.html", {"tenant": tenant, "events": events})
-
-
-@login_required
-@tenant_admin_required
-def users_invite(request):
-    """
-    Admin-only stub for future invites.
-    No emails, no tokens yet. Just a clean placeholder page.
-    """
-    tenant = getattr(request, "tenant", None)
-    return render(request, "settings_app/users_invite.html", {"tenant": tenant})
-
-
-@login_required
-@tenant_admin_required
-def user_add(request):
-    tenant = getattr(request, "tenant", None)
-    User = get_user_model()
-
-    if request.method == "POST":
-        form = TenantUserCreateForm(request.POST)
-        if form.is_valid():
-            user = User.objects.create_user(
-                username=form.cleaned_data["username"],
-                email=form.cleaned_data.get("email", "") or "",
-                password=form.cleaned_data["password1"],
-                first_name=form.cleaned_data.get("first_name", "") or "",
-                last_name=form.cleaned_data.get("last_name", "") or "",
-            )
-            TenantMembership.objects.create(
-                tenant=tenant,
-                user=user,
-                role=form.cleaned_data["role"],
-            )
-            messages.success(request, "User created and added to tenant.")
-            return redirect("settings_app:users_list")
-        messages.error(request, "Please fix the errors below.")
-    else:
-        form = TenantUserCreateForm()
-
-    return render(request, "settings_app/user_add_form.html", {"tenant": tenant, "form": form})
-

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block page_title %}
+  {% if mode == "create" %}New Maintenance Record{% elif mode == "edit" %}Edit Maintenance Record{% else %}Delete Maintenance Record{% endif %}
+{% endblock %}
+{% block page_subtitle %}{% endblock %}
+{% block content %}
+
+<style>
+  .panel{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:16px;box-shadow:0 12px 34px rgba(0,0,0,.25);max-width:980px;}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+  .grid .full{grid-column:1 / -1;}
+  label{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;margin-bottom:6px;}
+  input,select,textarea{width:100%;}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);text-decoration:none;}
+  .btn.primary{border-color:rgba(37,214,255,.35);}
+  .btn.danger{border-color:rgba(255,80,80,.35);}
+  .muted{opacity:.70;}
+  @media (max-width: 800px){ .grid{grid-template-columns:1fr;} }
+</style>
+
+<div class="panel">
+  {% if mode == "delete" %}
+    <p>Are you sure you want to delete this maintenance record?</p>
+    <p class="muted"><strong>{{ obj.service_date }}</strong> — {{ obj.vehicle }} — {{ obj.description }}</p>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="actions">
+        <button class="btn danger" type="submit">Yes, Delete</button>
+        <a class="btn" href="{% url 'maintenance:maintenance_list' %}">Cancel</a>
+      </div>
+    </form>
+  {% else %}
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="grid">
+        <div>
+          <label for="{{ form.vehicle.id_for_label }}">Vehicle</label>
+          {{ form.vehicle }}
+          {% if form.vehicle.errors %}<div class="muted">{{ form.vehicle.errors }}</div>{% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.service_date.id_for_label }}">Service Date</label>
+          {{ form.service_date }}
+          {% if form.service_date.errors %}<div class="muted">{{ form.service_date.errors }}</div>{% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.odometer.id_for_label }}">Odometer</label>
+          {{ form.odometer }}
+        </div>
+
+        <div>
+          <label for="{{ form.category.id_for_label }}">Category</label>
+          {{ form.category }}
+        </div>
+
+        <div class="full">
+          <label for="{{ form.description.id_for_label }}">Description</label>
+          {{ form.description }}
+          {% if form.description.errors %}<div class="muted">{{ form.description.errors }}</div>{% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.vendor.id_for_label }}">Vendor</label>
+          {{ form.vendor }}
+        </div>
+
+        <div>
+          <label for="{{ form.cost.id_for_label }}">Cost</label>
+          {{ form.cost }}
+        </div>
+
+        <div>
+          <label for="{{ form.next_due_date.id_for_label }}">Next Due Date</label>
+          {{ form.next_due_date }}
+        </div>
+
+        <div>
+          <label for="{{ form.next_due_odometer.id_for_label }}">Next Due Odometer</label>
+          {{ form.next_due_odometer }}
+        </div>
+
+        <div class="full">
+          <label for="{{ form.notes.id_for_label }}">Notes</label>
+          {{ form.notes }}
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn primary" type="submit">
+          {% if mode == "create" %}Create{% else %}Save Changes{% endif %}
+        </button>
+        <a class="btn" href="{% url 'maintenance:maintenance_list' %}">Cancel</a>
+      </div>
+    </form>
+  {% endif %}
+</div>
+
+{% endblock %}

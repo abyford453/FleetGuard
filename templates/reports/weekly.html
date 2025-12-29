@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block page_title %}Weekly Report{% endblock %}
+{% block page_subtitle %}{{ start }} to {{ end }}{% endblock %}
+{% block content %}
+
+<style>
+  .panel{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:14px;box-shadow:0 12px 34px rgba(0,0,0,.22);}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);text-decoration:none;white-space:nowrap;background:transparent;}
+  .btn.primary{border-color:rgba(37,214,255,.35);background:rgba(37,214,255,.06);}
+  .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px;}
+  .card{grid-column:span 4;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:14px;min-height:120px;text-decoration:none;display:flex;flex-direction:column;justify-content:space-between;}
+  .k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.70;}
+  .v{font-size:28px;font-weight:950;}
+  .muted{opacity:.70;font-size:13px;}
+  .charts{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px;}
+  .chartbox{grid-column:span 6;}
+  .chart-wrap{position:relative;height:320px;width:100%;overflow:hidden;}
+  .chart-wrap canvas{position:absolute;inset:0;width:100% !important;height:100% !important;display:block;}
+  table{width:100%;border-collapse:collapse;}
+  th,td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top;}
+  th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;}
+  @media (max-width:1100px){.card{grid-column:span 6;}.chartbox{grid-column:span 12;}}
+  @media (max-width:700px){.card{grid-column:span 12;}}
+</style>
+
+<div class="panel" style="margin-bottom:12px;">
+  <div class="row">
+    <div>
+      <div style="font-weight:950;font-size:18px;">Weekly Operations Report</div>
+      <div class="muted">Range: {{ start }} → {{ end }}</div>
+    </div>
+    <div class="row" style="justify-content:flex-end;">
+      <a class="btn primary" href="{% url 'reports:export_weekly_xlsx' %}?start={{ start }}&end={{ end }}">Download Excel</a>
+      <a class="btn" href="{% url 'reports:index' %}">Back to Reports</a>
+    </div>
+  </div>
+</div>
+
+<div class="grid" style="margin-bottom:12px;">
+  <div class="card"><div><div class="k">Inspections Completed</div><div class="v">{{ insp_completed }}</div></div><div class="muted">Performed during range.</div></div>
+  <div class="card"><div><div class="k">Alerts Created</div><div class="v">{{ alerts_created }}</div></div><div class="muted">New inspection alerts.</div></div>
+  <div class="card"><div><div class="k">Fuel Spend</div><div class="v">${{ fuel_spend|floatformat:2 }}</div></div><div class="muted">Cost logged in range.</div></div>
+  <div class="card"><div><div class="k">Overdue Inspections (Now)</div><div class="v">{{ overdue_now }}</div></div><div class="muted">Current overdue total.</div></div>
+  <div class="card"><div><div class="k">Docs Expiring (30 Days)</div><div class="v">{{ docs_expiring_30 }}</div></div><div class="muted">Current rolling window.</div></div>
+</div>
+
+<div class="charts" style="margin-bottom:12px;">
+  <div class="chartbox panel">
+    <div style="font-weight:950;margin-bottom:10px;">Fuel Spend by Day</div>
+    <div class="chart-wrap"><canvas id="fuelChart"></canvas></div>
+  </div>
+  <div class="chartbox panel">
+    <div style="font-weight:950;margin-bottom:10px;">Alerts Created by Day</div>
+    <div class="chart-wrap"><canvas id="alertChart"></canvas></div>
+  </div>
+</div>
+
+<div class="panel" style="margin-bottom:12px;">
+  <div style="font-weight:950;margin-bottom:10px;">Top Vehicles by Fuel Spend</div>
+  {% if top_rows %}
+    <table>
+      <thead><tr><th>Vehicle</th><th>Spend ($)</th></tr></thead>
+      <tbody>
+        {% for name,total in top_rows %}
+          <tr><td><strong>{{ name }}</strong></td><td>${{ total|floatformat:2 }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="muted">No fuel cost data in this range.</div>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <div style="font-weight:950;margin-bottom:10px;">Vehicles Missing Fuel Logs (30 Days)</div>
+  {% if stale_list %}
+    <table>
+      <thead><tr><th>Vehicle</th><th>Detail</th></tr></thead>
+      <tbody>
+        {% for a in stale_list %}
+          <tr><td><strong>{{ a.vehicle_label }}</strong></td><td class="muted">{{ a.detail }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="muted">No missing/stale fuel logs.</div>
+  {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  const fuelLabels = {{ fuel_labels_json|safe }};
+  const fuelValues = {{ fuel_values_json|safe }};
+  const alertLabels = {{ alert_labels_json|safe }};
+  const alertValues = {{ alert_values_json|safe }};
+
+  const base = { responsive:true, maintainAspectRatio:false, animation:false };
+
+  new Chart(document.getElementById("fuelChart"), {
+    type:"line",
+    data:{ labels:fuelLabels, datasets:[{ label:"Spend ($)", data:fuelValues, tension:0.25 }]},
+    options: base
+  });
+
+  new Chart(document.getElementById("alertChart"), {
+    type:"bar",
+    data:{ labels:alertLabels, datasets:[{ label:"Alerts", data:alertValues }]},
+    options: base
+  });
+</script>
+
+{% endblock %}

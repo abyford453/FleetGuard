@@ -10,6 +10,4 @@ urlpatterns = [
     path("users/<int:membership_id>/remove/", views.user_remove_confirm, name="user_remove"),
     path("users/<int:membership_id>/role/", views.user_role_update, name="user_role_update"),
     path("audit/", views.audit_log, name="audit_log"),
-    path("users/invite/", views.users_invite, name="users_invite"),
-    path("users/add/", views.user_add, name="user_add"),
 ]

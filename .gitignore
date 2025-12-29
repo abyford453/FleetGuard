@@ -17,3 +17,8 @@ staticfiles/
 .DS_Store
 .vscode/
 .idea/
+
+# Local backups
+*.bak.*
+urls.py
+views.py

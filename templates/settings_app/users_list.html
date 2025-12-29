@@ -8,7 +8,7 @@
     <div>
       <div style="font-weight:850; font-size:16px; margin-bottom:4px;">Tenant Members</div>
       <div style="opacity:.85; font-size:13px;">
-        Tenant-scoped membership and roles. Role changes and removals are enabled. Invites are planned.
+        Tenant-scoped membership and roles. Role changes and removals are enabled. Invite links are enabled.
       </div>
       <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
         <span class="badge badge-muted">Members: {{ member_count }}</span>
@@ -18,12 +18,23 @@
 
     <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
       <a class="btn btn-secondary" href="{% url 'settings_app:index' %}">Back to Settings</a>
+      <a class="btn btn-secondary" href="{% url 'settings_app:invites_list' %}">Invite links</a>
       <a class="btn btn-secondary" href="{% url 'settings_app:users_invite' %}" title="Invites are planned (opens details)">Invite user</a>
       <a class="btn" href="{% url 'settings_app:user_add' %}">Add user</a>
-      <button class="btn" type="button" disabled aria-disabled="true" title="Coming later">
-        Add user
-      </button>
     </div>
+  </div>
+
+  <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+    <form method="get" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <input type="text" name="q" value="{{ q|default:'' }}" placeholder="Search name, email, username…" style="min-width:260px;" />
+      <select name="role" style="min-width:160px;">
+        <option value="" {% if not role_filter %}selected{% endif %}>All roles</option>
+        <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admins only</option>
+        <option value="user" {% if role_filter == 'user' %}selected{% endif %}>Users only</option>
+      </select>
+      <button class="btn btn-secondary" type="submit">Filter</button>
+      <a class="btn btn-secondary" href="{% url 'settings_app:users_list' %}">Reset</a>
+    </form>
   </div>
 
   <div style="margin-top:14px; overflow:auto;">
@@ -51,27 +62,23 @@
               <span style="opacity:.75; font-size:12px; margin-left:8px;">({{ r.role }})</span>
             </td>
             <td style="opacity:.85;">{{ r.joined|date:"Y-m-d" }}</td>
-            <td style="text-align:right;">
-              {% if r.user.id == request.user.id %}
-                <button class="btn btn-secondary" type="button" disabled aria-disabled="true" title="You cannot change your own role">
+            <td style="text-align:right; white-space:nowrap;">
+              {# Change Role #}
+              {% if r.can_change_role %}
+                <a class="btn btn-secondary" href="{% url 'settings_app:user_role_update' r.membership_id %}">Change Role</a>
+              {% else %}
+                <button class="btn btn-secondary" type="button" disabled aria-disabled="true" title="{{ r.change_role_reason|default:'Not allowed' }}">
                   Change Role
                 </button>
-              {% else %}
-                <form method="post" action="{% url 'settings_app:user_role_update' r.membership_id %}" style="display:inline-flex; gap:8px; align-items:center; justify-content:flex-end;">
-                  {% csrf_token %}
-                  <select name="role" class="input" style="min-width:140px;">
-                    <option value="admin" {% if r.is_admin %}selected{% endif %}>Admin</option>
-                    <option value="user" {% if not r.is_admin %}selected{% endif %}>User</option>
-                  </select>
-                  <button class="btn btn-secondary" type="submit">Save</button>
-                </form>
               {% endif %}
-              {% if r.user.id == request.user.id %}
-                <button class="btn btn-danger" type="button" disabled aria-disabled="true" title="You cannot remove yourself">
+
+              {# Remove #}
+              {% if r.can_remove %}
+                <a class="btn btn-danger" href="{% url 'settings_app:user_remove' r.membership_id %}">Remove</a>
+              {% else %}
+                <button class="btn btn-danger" type="button" disabled aria-disabled="true" title="{{ r.remove_reason|default:'Not allowed' }}">
                   Remove
                 </button>
-              {% else %}
-                <a class="btn btn-danger" href="{% url 'settings_app:user_remove' r.membership_id %}">Remove</a>
               {% endif %}
             </td>
           </tr>
@@ -85,7 +92,7 @@
   </div>
 
   <div style="margin-top:12px; opacity:.75; font-size:12px;">
-    Admin-only page. Enabled: role changes and member removal. Planned: invites and audit logging.
+    Admin-only page. Enabled: role changes, member removal, invite links, and audit logging. Planned: email invites (optional).
   </div>
 </div>
 {% endblock %}

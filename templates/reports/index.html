@@ -1,15 +1,55 @@
 {% extends "base.html" %}
 {% block page_title %}Reports{% endblock %}
-{% block page_subtitle %}Exports + charts (tenant scoped){% endblock %}
+{% block page_subtitle %}Custom reports, exports, and analytics (tenant scoped){% endblock %}
 {% block content %}
 
 <style>
   .section{margin-bottom:14px;}
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
-  .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);text-decoration:none;white-space:nowrap;background:transparent;}
-  .btn.primary{border-color:rgba(37,214,255,.35);background:rgba(37,214,255,.06);}
   .panel{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:14px;box-shadow:0 12px 34px rgba(0,0,0,.22);}
 
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);text-decoration:none;white-space:nowrap;background:transparent;cursor:pointer;}
+  .btn.primary{border-color:rgba(37,214,255,.35);background:rgba(37,214,255,.06);}
+  .btn.ghost{opacity:.90;}
+  .muted{opacity:.70;font-size:13px;line-height:1.35;}
+
+  /* Dropdown */
+  .dd{position:relative;display:inline-flex;}
+  .dd > summary{
+    list-style:none;
+    user-select:none;
+  }
+  .dd > summary::-webkit-details-marker{display:none;}
+  .menu{
+    position:absolute;
+    right:0;
+    top:calc(100% + 8px);
+    min-width:240px;
+    z-index:50;
+    background:rgba(10,10,18,.98);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:14px;
+    box-shadow:0 20px 50px rgba(0,0,0,.45);
+    overflow:hidden;
+  }
+  body.light .menu{
+    background:rgba(255,255,255,.98);
+  }
+  .menu a{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    padding:10px 12px;
+    text-decoration:none;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    font-weight:700;
+  }
+  .menu a:last-child{border-bottom:none;}
+  .menu a:hover{background:rgba(37,214,255,.07);}
+  .tag{font-size:11px;opacity:.70;border:1px solid rgba(255,255,255,.14);padding:2px 8px;border-radius:999px;}
+
+  /* KPIs */
   .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px;align-items:stretch;}
   .card{
     grid-column:span 4;
@@ -27,30 +67,18 @@
   }
   .k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.70;}
   .v{font-size:28px;font-weight:950;line-height:1;}
-  .muted{opacity:.70;font-size:13px;line-height:1.35;}
   .warn{border-color:rgba(255,200,60,.35);background:rgba(255,200,60,.08);}
   .danger{border-color:rgba(255,80,80,.35);background:rgba(255,80,80,.08);}
   .info{border-color:rgba(37,214,255,.30);background:rgba(37,214,255,.06);}
 
-  /* Charts: IMPORTANT — fixed wrapper height to prevent "runaway expansion" */
+  /* Charts fixed height */
   .charts{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px;align-items:stretch;}
   .chartbox{grid-column:span 6;}
   .chartbox.wide{grid-column:span 12;}
   .chart-title{font-weight:950;margin-bottom:10px;}
-  .chart-wrap{
-    position:relative;
-    height:320px;            /* hard stop */
-    width:100%;
-    overflow:hidden;         /* prevents any weird stretching */
-  }
+  .chart-wrap{position:relative;height:320px;width:100%;overflow:hidden;}
   .chart-wrap.tall{height:360px;}
-  .chart-wrap canvas{
-    position:absolute;
-    inset:0;
-    width:100% !important;
-    height:100% !important;
-    display:block;
-  }
+  .chart-wrap canvas{position:absolute;inset:0;width:100% !important;height:100% !important;display:block;}
 
   @media (max-width: 1100px){
     .card{grid-column:span 6;}
@@ -58,38 +86,61 @@
   }
   @media (max-width: 700px){
     .card{grid-column:span 12;}
+    .menu{min-width:220px;}
   }
 </style>
-
 
 <div class="section panel">
   <div class="row">
     <div>
-      <div style="font-weight:950;font-size:18px;">Exports</div>
-      <div class="muted">CSV for quick dumps, Excel for clean spreadsheets, Print for PDF-ready reports.</div>
+      <div style="font-weight:950;font-size:18px;">Reports Center</div>
+      <div class="muted">Run weekly/monthly reports, export data, or print a snapshot. Everything is tenant-scoped.</div>
     </div>
+
     <div class="row" style="justify-content:flex-end;">
-      <a class="btn primary" href="{% url 'reports:print_report' %}" target="_blank">Print / Save PDF</a>
+      <!-- Custom Reports -->
+      <details class="dd">
+        <summary class="btn primary">Custom Reports ▾</summary>
+        <div class="menu">
+          <a href="{% url 'reports:weekly_report' %}">
+            Weekly Operations <span class="tag">Charts</span>
+          </a>
+          <a href="{% url 'reports:monthly_report' %}">
+            Monthly Executive <span class="tag">Charts</span>
+          </a>
+          <a href="{% url 'reports:print_report' %}" target="_blank">
+            Print Snapshot <span class="tag">PDF</span>
+          </a>
+        </div>
+      </details>
 
-      <a class="btn" href="{% url 'reports:export_fuel_csv' %}">Fuel CSV</a>
-      <a class="btn" href="{% url 'reports:export_fuel_xlsx' %}">Fuel Excel</a>
+      <!-- CSV Exports -->
+      <details class="dd">
+        <summary class="btn ghost">Export CSV ▾</summary>
+        <div class="menu">
+          <a href="{% url 'reports:export_fuel_csv' %}">Fuel Logs <span class="tag">CSV</span></a>
+          <a href="{% url 'reports:export_inspections_csv' %}">Inspections <span class="tag">CSV</span></a>
+          <a href="{% url 'reports:export_inspection_alerts_csv' %}">Inspection Alerts <span class="tag">CSV</span></a>
+          <a href="{% url 'reports:export_documents_csv' %}">Documents <span class="tag">CSV</span></a>
+        </div>
+      </details>
 
-      <a class="btn" href="{% url 'reports:export_inspections_csv' %}">Inspections CSV</a>
-      <a class="btn" href="{% url 'reports:export_inspections_xlsx' %}">Inspections Excel</a>
-
-      <a class="btn" href="{% url 'reports:export_inspection_alerts_csv' %}">Alerts CSV</a>
-      <a class="btn" href="{% url 'reports:export_inspection_alerts_xlsx' %}">Alerts Excel</a>
-
-      <a class="btn" href="{% url 'reports:export_documents_csv' %}">Documents CSV</a>
-      <a class="btn" href="{% url 'reports:export_documents_xlsx' %}">Documents Excel</a>
+      <!-- Excel Exports -->
+      <details class="dd">
+        <summary class="btn ghost">Export Excel ▾</summary>
+        <div class="menu">
+          <a href="{% url 'reports:export_fuel_xlsx' %}">Fuel Logs <span class="tag">XLSX</span></a>
+          <a href="{% url 'reports:export_inspections_xlsx' %}">Inspections <span class="tag">XLSX</span></a>
+          <a href="{% url 'reports:export_inspection_alerts_xlsx' %}">Inspection Alerts <span class="tag">XLSX</span></a>
+          <a href="{% url 'reports:export_documents_xlsx' %}">Documents <span class="tag">XLSX</span></a>
+        </div>
+      </details>
     </div>
   </div>
-</div>
 </div>
 
 <div class="section">
   <div class="grid">
-
     <a class="card info" href="{% url 'fleet:vehicle_list' %}">
       <div>
         <div class="k">Vehicles</div>
@@ -161,7 +212,6 @@
       </div>
       <div class="muted">Total cost of fuel logs in last 30 days.</div>
     </a>
-
   </div>
 </div>
 
@@ -204,7 +254,7 @@
   const baseOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    animation: false,          // avoids resize jitter on some setups
+    animation: false,
   };
 
   new Chart(document.getElementById("chartDaily"), {

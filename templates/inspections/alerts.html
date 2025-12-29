@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block page_title %}Inspection Alerts{% endblock %}
+{% block page_subtitle %}Issues generated from failed inspections{% endblock %}
+{% block content %}
+
+<style>
+  .toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px;}
+  .searchbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .searchbar input,.searchbar select{min-width:190px;}
+  .panel{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:14px;box-shadow:0 12px 34px rgba(0,0,0,.25);}
+  table{width:100%;border-collapse:collapse;}
+  th,td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top;}
+  th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;}
+  .muted{opacity:.70;}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);text-decoration:none;}
+  .btn.primary{border-color:rgba(37,214,255,.35);}
+  .btn.danger{border-color:rgba(255,80,80,.35);}
+  .pill{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);font-size:12px;font-weight:750;}
+  .pill.low{border-color:rgba(140,200,255,.35);}
+  .pill.medium{border-color:rgba(255,180,60,.35);}
+  .pill.high{border-color:rgba(255,80,80,.35);}
+  .pill.critical{border-color:rgba(255,0,0,.55);}
+</style>
+
+<div class="toolbar">
+  <form class="searchbar" method="get">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search alerts (title, details, unit, vin, plate)">
+
+    <select name="vehicle">
+      <option value="">All Vehicles</option>
+      {% for v in vehicles %}
+        <option value="{{ v.id }}" {% if vehicle_id|stringformat:"s" == v.id|stringformat:"s" %}selected{% endif %}>
+          {% if v.unit_number %}Unit {{ v.unit_number }} — {% endif %}{% if v.year %}{{ v.year }} {% endif %}{{ v.make }} {{ v.model }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <select name="status">
+      <option value="">All Status</option>
+      {% for key,label in status_choices %}
+        <option value="{{ key }}" {% if status == key %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="severity">
+      <option value="">All Severity</option>
+      {% for key,label in severity_choices %}
+        <option value="{{ key }}" {% if severity == key %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+
+    <label style="display:inline-flex;align-items:center;gap:8px;opacity:.9;">
+      <input type="checkbox" name="my" value="1" {% if my == "1" %}checked{% endif %}>
+      My Alerts
+    </label>
+
+    <button class="btn" type="submit">Filter</button>
+    <a class="btn" href="{% url 'inspections:alerts' %}">Reset</a>
+  </form>
+
+  <a class="btn" href="{% url 'inspections:list' %}">← Back to Inspections</a>
+</div>
+
+<div class="panel">
+  {% if alerts %}
+    <table>
+      <thead>
+        <tr>
+          <th>Created</th>
+          <th>Vehicle</th>
+          <th>Title</th>
+          <th>Severity</th>
+          <th>Status</th>
+          <th>Assigned</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in alerts %}
+          <tr>
+            <td><strong>{{ a.created_at|date:"Y-m-d" }}</strong></td>
+            <td>
+              <div><strong>{% if a.vehicle.unit_number %}Unit {{ a.vehicle.unit_number }}{% else %}Vehicle{% endif %}</strong></div>
+              <div class="muted">{% if a.vehicle.year %}{{ a.vehicle.year }} {% endif %}{{ a.vehicle.make }} {{ a.vehicle.model }}</div>
+            </td>
+            <td>
+              <div><strong>{{ a.title }}</strong></div>
+              {% if a.details %}<div class="muted">{{ a.details|truncatechars:120 }}</div>{% endif %}
+              <div class="muted">Inspection: {{ a.inspection.inspection_date }} ({{ a.inspection.inspection_type|default:"Inspection" }})</div>
+            </td>
+            <td>
+              <span class="pill {{ a.severity }}">{{ a.get_severity_display }}</span>
+            </td>
+            <td><span class="pill">{{ a.get_status_display }}</span></td>
+            <td>{% if a.assigned_to %}{{ a.assigned_to }}{% else %}<span class="muted">—</span>{% endif %}</td>
+            <td>
+              <div class="actions">
+                <a class="btn" href="{% url 'inspections:alert_update' a.id %}">Edit</a>
+                {% if can_manage_alerts and a.status != "closed" %}
+                  <form method="post" action="{% url 'inspections:alert_close' a.id %}">
+                    {% csrf_token %}
+                    <button class="btn danger" type="submit">Close</button>
+                  </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No alerts yet. Alerts are generated automatically when a completed inspection fails.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -9,4 +9,9 @@ urlpatterns = [
     path("new/", views.inspection_create, name="inspection_create"),
     path("<int:pk>/edit/", views.inspection_update, name="inspection_update"),
     path("<int:pk>/delete/", views.inspection_delete, name="inspection_delete"),
+
+    # Alerts
+    path("alerts/", views.alert_list, name="alerts"),
+    path("alerts/<int:pk>/edit/", views.alert_update, name="alert_update"),
+    path("alerts/<int:pk>/close/", views.alert_close, name="alert_close"),
 ]

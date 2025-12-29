@@ -69,6 +69,7 @@ class Inspection(models.Model):
         permissions = [
             ("assign_inspections", "Can assign inspections"),
             ("complete_inspections", "Can complete inspections"),
+            ("manage_inspection_alerts", "Can manage inspection alerts"),
         ]
 
     def save(self, *args, **kwargs):
@@ -80,3 +81,87 @@ class Inspection(models.Model):
 
     def __str__(self):
         return f"{self.vehicle} - {self.inspection_date} ({self.status}/{self.result})"
+
+
+class InspectionAlert(models.Model):
+    STATUS_OPEN = "open"
+    STATUS_ACK = "ack"
+    STATUS_IN_PROGRESS = "in_progress"
+    STATUS_CLOSED = "closed"
+    STATUS_CHOICES = [
+        (STATUS_OPEN, "Open"),
+        (STATUS_ACK, "Acknowledged"),
+        (STATUS_IN_PROGRESS, "In Progress"),
+        (STATUS_CLOSED, "Closed"),
+    ]
+
+    SEV_LOW = "low"
+    SEV_MED = "medium"
+    SEV_HIGH = "high"
+    SEV_CRIT = "critical"
+    SEVERITY_CHOICES = [
+        (SEV_LOW, "Low"),
+        (SEV_MED, "Medium"),
+        (SEV_HIGH, "High"),
+        (SEV_CRIT, "Critical"),
+    ]
+
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="inspection_alerts")
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT, related_name="inspection_alerts")
+
+    # One alert per inspection (prevents duplicates)
+    inspection = models.OneToOneField(
+        "inspections.Inspection",
+        on_delete=models.CASCADE,
+        related_name="alert",
+    )
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_OPEN)
+    severity = models.CharField(max_length=20, choices=SEVERITY_CHOICES, default=SEV_MED)
+
+    title = models.CharField(max_length=140)
+    details = models.TextField(blank=True)
+
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_inspection_alerts",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_inspection_alerts",
+    )
+
+    closed_at = models.DateTimeField(null=True, blank=True)
+    closed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="closed_inspection_alerts",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["tenant", "status"]),
+            models.Index(fields=["tenant", "severity"]),
+            models.Index(fields=["tenant", "vehicle"]),
+        ]
+
+    def close(self, user):
+        from django.utils import timezone
+        self.status = self.STATUS_CLOSED
+        self.closed_at = timezone.now()
+        self.closed_by = user
+        self.save(update_fields=["status", "closed_at", "closed_by"])
+
+    def __str__(self):
+        return f"[{self.get_severity_display()}] {self.title}"

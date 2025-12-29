@@ -230,6 +230,17 @@ def inspection_update(request, pk: int):
         {"form": form, "mode": "edit", "obj": obj, "can_assign": can_assign, "can_complete": can_complete},
     )
 
+
+@login_required
+def inspection_detail(request, pk: int):
+    tenant = request.tenant
+    inspection = get_object_or_404(
+        Inspection.objects.select_related("vehicle", "assigned_to", "alert"),
+        pk=pk,
+        tenant=tenant,
+    )
+    return render(request, "inspections/detail.html", {"inspection": inspection})
+
 @login_required
 def inspection_delete(request, pk: int):
     tenant = request.tenant

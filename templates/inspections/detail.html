@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block page_title %}Inspection Detail{% endblock %}
+{% block page_subtitle %}View inspection results and linked alerts{% endblock %}
+{% block content %}
+
+<style>
+  .wrap{max-width:980px;}
+  .panel{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:16px;box-shadow:0 12px 34px rgba(0,0,0,.25);}
+  .row{display:flex;gap:16px;flex-wrap:wrap;}
+  .col{flex:1;min-width:260px;}
+  .kv{margin:8px 0;}
+  .k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.70;}
+  .v{font-weight:800;margin-top:2px;}
+  .muted{opacity:.70;}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);text-decoration:none;}
+  .btn.primary{border-color:rgba(37,214,255,.35);}
+  .btn.warn{border-color:rgba(255,200,60,.35);background:rgba(255,200,60,.08);}
+  .pill{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);font-size:12px;font-weight:850;}
+  .pill.danger{border-color:rgba(255,80,80,.35);}
+</style>
+
+<div class="wrap">
+  <div class="panel">
+    <div class="row">
+      <div class="col">
+        <div class="kv">
+          <div class="k">Vehicle</div>
+          <div class="v">
+            {% if inspection.vehicle.unit_number %}Unit {{ inspection.vehicle.unit_number }}{% else %}Vehicle{% endif %}
+            <span class="muted">— {% if inspection.vehicle.year %}{{ inspection.vehicle.year }} {% endif %}{{ inspection.vehicle.make }} {{ inspection.vehicle.model }}</span>
+          </div>
+        </div>
+
+        <div class="kv">
+          <div class="k">Inspection Date</div>
+          <div class="v">{{ inspection.inspection_date }}</div>
+        </div>
+
+        <div class="kv">
+          <div class="k">Type</div>
+          <div class="v">{{ inspection.inspection_type|default:"—" }}</div>
+        </div>
+
+        <div class="kv">
+          <div class="k">Assigned To</div>
+          <div class="v">{% if inspection.assigned_to %}{{ inspection.assigned_to }}{% else %}<span class="muted">—</span>{% endif %}</div>
+        </div>
+
+        <div class="kv">
+          <div class="k">Due Date</div>
+          <div class="v">{% if inspection.due_date %}{{ inspection.due_date }}{% else %}<span class="muted">—</span>{% endif %}</div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="kv">
+          <div class="k">Status</div>
+          <div class="v"><span class="pill">{{ inspection.get_status_display }}</span></div>
+        </div>
+
+        <div class="kv">
+          <div class="k">Result</div>
+          <div class="v"><span class="pill {% if inspection.result == 'fail' %}danger{% endif %}">{{ inspection.get_result_display }}</span></div>
+        </div>
+
+        <div class="kv">
+          <div class="k">Odometer</div>
+          <div class="v">{% if inspection.odometer %}{{ inspection.odometer }}{% else %}<span class="muted">—</span>{% endif %}</div>
+        </div>
+
+        <div class="kv">
+          <div class="k">Notes</div>
+          <div class="v">{% if inspection.notes %}{{ inspection.notes|linebreaksbr }}{% else %}<span class="muted">—</span>{% endif %}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <a class="btn" href="{% url 'inspections:list' %}">← Back</a>
+      <a class="btn primary" href="{% url 'inspections:inspection_update' inspection.id %}">Edit</a>
+
+      {% if inspection.alert and inspection.alert.status != "closed" %}
+        <a class="btn warn" href="{% url 'inspections:alert_update' inspection.alert.id %}">Open Alert</a>
+      {% elif inspection.result == "fail" %}
+        <a class="btn warn" href="{% url 'inspections:alerts' %}">View Alerts</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

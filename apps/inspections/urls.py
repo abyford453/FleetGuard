@@ -7,6 +7,7 @@ urlpatterns = [
     # Sidebar expects: {% url 'inspections:list' %}
     path("", views.inspection_list, name="list"),
     path("new/", views.inspection_create, name="inspection_create"),
+    path("<int:pk>/", views.inspection_detail, name="inspection_detail"),
     path("<int:pk>/edit/", views.inspection_update, name="inspection_update"),
     path("<int:pk>/delete/", views.inspection_delete, name="inspection_delete"),
 

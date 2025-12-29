@@ -166,7 +166,7 @@
             </td>
             <td>
               <div class="actions">
-                <a class="btn" href="{% url 'inspections:inspection_update' i.id %}">
+                <a class="btn" href="{% if i.status == "completed" %}{% url 'inspections:inspection_detail' i.id %}{% else %}{% url 'inspections:inspection_update' i.id %}{% endif %}">
                   {% if i.status == "completed" %}View{% else %}Open{% endif %}
                 </a>
                 {% if can_assign %}

@@ -93,6 +93,11 @@
       Overdue
     </label>
 
+    <label style="display:inline-flex;align-items:center;gap:8px;opacity:.9;">
+      <input type="checkbox" name="due_soon" value="1" {% if due_soon == "1" %}checked{% endif %}>
+      Due soon
+    </label>
+
     <button class="btn" type="submit">Filter</button>
     <a class="btn" href="{% url 'inspections:list' %}">Reset</a>
   </form>

@@ -96,6 +96,7 @@ def inspection_list(request):
     status = (request.GET.get("status") or "").strip()
     my = (request.GET.get("my") or "").strip()
     overdue = (request.GET.get("overdue") or "").strip()
+    due_soon = (request.GET.get("due_soon") or "").strip()
 
     if my == "1":
         qs = qs.filter(assigned_to=request.user)
@@ -108,6 +109,12 @@ def inspection_list(request):
 
     if result:
         qs = qs.filter(result=result)
+
+
+    if due_soon == "1":
+        today = timezone.localdate()
+        soon = today + timezone.timedelta(days=7)
+        qs = qs.filter(due_date__isnull=False, due_date__gte=today, due_date__lte=soon).exclude(status=Inspection.STATUS_COMPLETED)
 
     if overdue == "1":
         today = timezone.localdate()
@@ -140,6 +147,7 @@ def inspection_list(request):
             "status": status,
             "my": my,
             "overdue": overdue,
+            "due_soon": due_soon,
             "vehicles": vehicles,
             "result_choices": Inspection.RESULT_CHOICES,
             "status_choices": Inspection.STATUS_CHOICES,

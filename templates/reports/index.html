@@ -240,40 +240,87 @@
   </div>
 </div>
 
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<!-- JSON data blocks (valid HTML, keeps JS lint clean) -->
+<script id="daily-labels" type="application/json">{{ daily_labels_json|safe }}</script>
+<script id="daily-values" type="application/json">{{ daily_values_json|safe }}</script>
+
+<script id="monthly-labels" type="application/json">{{ monthly_labels_json|safe }}</script>
+<script id="monthly-values" type="application/json">{{ monthly_values_json|safe }}</script>
+
+<script id="top-labels" type="application/json">{{ top_labels_json|safe }}</script>
+<script id="top-values" type="application/json">{{ top_values_json|safe }}</script>
+
 <script>
-  const dailyLabels = {{ daily_labels_json|safe }};
-  const dailyValues = {{ daily_values_json|safe }};
+  document.addEventListener("DOMContentLoaded", () => {
+    // ---------- helpers ----------
+    const readJson = (id) => {
+      const el = document.getElementById(id);
+      if (!el) return null;
+      try { return JSON.parse(el.textContent || "null"); } catch (e) { return null; }
+    };
 
-  const monthlyLabels = {{ monthly_labels_json|safe }};
-  const monthlyValues = {{ monthly_values_json|safe }};
+    const baseOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+    };
 
-  const topLabels = {{ top_labels_json|safe }};
-  const topValues = {{ top_values_json|safe }};
+    // ---------- charts ----------
+    const dailyEl = document.getElementById("chartDaily");
+    const monthlyEl = document.getElementById("chartMonthly");
+    const topEl = document.getElementById("chartTop");
 
-  const baseOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: false,
-  };
+    if (dailyEl) {
+      const dailyLabels = readJson("daily-labels") || [];
+      const dailyValues = readJson("daily-values") || [];
+      new Chart(dailyEl, {
+        type: "line",
+        data: { labels: dailyLabels, datasets: [{ label: "Spend ($)", data: dailyValues, tension: 0.25 }] },
+        options: baseOptions
+      });
+    }
 
-  new Chart(document.getElementById("chartDaily"), {
-    type: "line",
-    data: { labels: dailyLabels, datasets: [{ label: "Spend ($)", data: dailyValues, tension: 0.25 }] },
-    options: baseOptions
-  });
+    if (monthlyEl) {
+      const monthlyLabels = readJson("monthly-labels") || [];
+      const monthlyValues = readJson("monthly-values") || [];
+      new Chart(monthlyEl, {
+        type: "bar",
+        data: { labels: monthlyLabels, datasets: [{ label: "Spend ($)", data: monthlyValues }] },
+        options: baseOptions
+      });
+    }
 
-  new Chart(document.getElementById("chartMonthly"), {
-    type: "bar",
-    data: { labels: monthlyLabels, datasets: [{ label: "Spend ($)", data: monthlyValues }] },
-    options: baseOptions
-  });
+    if (topEl) {
+      const topLabels = readJson("top-labels") || [];
+      const topValues = readJson("top-values") || [];
+      new Chart(topEl, {
+        type: "bar",
+        data: { labels: topLabels, datasets: [{ label: "Spend ($)", data: topValues }] },
+        options: { ...baseOptions, indexAxis: "y" }
+      });
+    }
 
-  new Chart(document.getElementById("chartTop"), {
-    type: "bar",
-    data: { labels: topLabels, datasets: [{ label: "Spend ($)", data: topValues }] },
-    options: { ...baseOptions, indexAxis: "y" }
+    // ---------- dropdown hover behavior ----------
+    const dds = document.querySelectorAll(".dd");
+    if (!dds.length) return;
+
+    dds.forEach(dd => {
+      dd.addEventListener("mouseenter", () => {
+        document.querySelectorAll(".dd[open]").forEach(openDd => {
+          if (openDd !== dd) openDd.removeAttribute("open");
+        });
+        dd.setAttribute("open", true);
+      });
+
+      dd.addEventListener("mouseleave", () => {
+        dd.removeAttribute("open");
+      });
+    });
   });
 </script>
 
 {% endblock %}
+

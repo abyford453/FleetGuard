@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block page_title %}Settings{% endblock %}
+{% block page_subtitle %}Tenant configuration and management{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="h2">Organization</div>
+        <div class="muted">These settings apply to the active tenant.</div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      {% if tenant %}
+        <div class="grid-2">
+          <div class="kv">
+            <div class="k">Tenant</div>
+            <div class="v"><strong>{{ tenant }}</strong></div>
+          </div>
+
+          <div class="kv">
+            <div class="k">Tenant ID</div>
+            <div class="v">{{ tenant.id }}</div>
+          </div>
+
+          <div class="kv">
+            <div class="k">Active</div>
+            <div class="v">Yes</div>
+          </div>
+
+          <div class="kv">
+            <div class="k">Signed in as</div>
+            <div class="v">{{ request.user.get_username }}</div>
+          </div>
+        </div>
+
+        <div style="margin-top:14px;" class="note">
+          <strong>Next:</strong> we’ll add an “Edit Tenant Profile” form here (still tenant-scoped),
+          then later add user/role management.
+        </div>
+      {% else %}
+        <div class="note">
+          <strong>No tenant found.</strong> Your tenant middleware should attach <code>request.tenant</code>.
+          If you reached this page without selecting a tenant, we can redirect to the tenant select page in the next step.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <style>
+    /* Keep styling consistent with your theme.css “card” look */
+    .grid-2{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
+    @media (max-width: 860px){ .grid-2{ grid-template-columns: 1fr; } }
+
+    .kv{ padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.03); }
+    .kv .k{ font-size:12px; letter-spacing:.02em; text-transform:uppercase; opacity:.72; margin-bottom:6px; }
+    .kv .v{ font-size:14px; }
+
+    .note{ border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.03); padding:12px 14px; border-radius:14px; }
+    .muted{ opacity:.75; }
+    .h2{ font-size:18px; font-weight:800; }
+  </style>
+{% endblock %}

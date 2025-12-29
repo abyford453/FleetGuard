@@ -4,100 +4,288 @@
 
 {% block content %}
 
-<div class="settings-wrap">
+<div class="settings-shell">
 
-  <-----------------+------------------ Header / Summary -->
-  <div class="card settings-hero">
-    <div class="settings-hero-left">
-      <div class="settings-title">Control Center</div>
-      <div class="settings-subtitle">
-        Manage organization settings for the active tenant, then users/roles and billing later.
+  <-----------------+------------------ Sidebar -->
+  <aside class="settings-nav">
+    <div class="nav-title">Settings</div>
+
+    <a class="nav-item" href="#org" data-section="org">
+      <span class="nav-dot"></span>
+      Organization
+      <span class="nav-pill">{% if tenant %}Active{% else %}None{% endif %}</span>
+    </a>
+
+    <a class="nav-item" href="#users" data-section="users">
+      <span class="nav-dot"></span>
+      Users & Roles
+      <span class="nav-pill muted">Soon</span>
+    </a>
+
+    <a class="nav-item" href="#billing" data-section="billing">
+      <span class="nav-dot"></span>
+      Billing
+      <span class="nav-pill muted">Soon</span>
+    </a>
+
+    <a class="nav-item" href="#appearance" data-section="appearance">
+      <span class="nav-dot"></span>
+      Appearance
+      <span class="nav-pill muted">Soon</span>
+    </a>
+
+    <a class="nav-item" href="#security" data-section="security">
+      <span class="nav-dot"></span>
+      Security
+      <span class="nav-pill muted">Soon</span>
+    </a>
+
+    <div class="nav-foot">
+      <div class="small muted">Signed in as</div>
+      <div class="small strong">{{ request.user.get_username }}</div>
+      {% if tenant %}
+        <div class="small muted" style="margin-top:8px;">Tenant ID</div>
+        <div class="small strong">{{ tenant.id }}</div>
+      {% endif %}
+    </div>
+  </aside>
+
+  <-----------------+------------------ Main -->
+  <main class="settings-main">
+
+    <-----------------+------------------ Hero / quick actions -->
+    <div class="card settings-hero">
+      <div class="hero-left">
+        <div class="hero-title">Control Center</div>
+        <div class="hero-sub">
+          A central place for tenant settings now. Users/roles, billing, and security will plug in here next.
+        </div>
+
+        <div class="hero-meta">
+          <span class="pill">
+            <span class="dot"></span>
+            Tenant: <strong>{% if tenant %}{{ tenant }}{% else %}Not selected{% endif %}</strong>
+          </span>
+          <span class="pill">
+            User: <strong>{{ request.user.get_username }}</strong>
+          </span>
+        </div>
       </div>
 
-      <div class="settings-meta">
-        <span class="pill">
-          <span class="dot"></span>
-          Tenant: <strong>{% if tenant %}{{ tenant }}{% else %}Not selected{% endif %}</strong>
-        </span>
-        <span class="pill">
-          User: <strong>{{ user_display }}</strong>
-        </span>
+      <div class="hero-actions">
         {% if tenant %}
-          <span class="pill subtle">Tenant ID: <strong>{{ tenant.id }}</strong></span>
+          <a class="btn" href="{% url 'settings_app:organization_edit' %}">Edit Organization</a>
+        {% else %}
+          <a class="btn disabled" href="javascript:void(0)" aria-disabled="true" title="Select a tenant first">Edit Organization</a>
         {% endif %}
+        <a class="btn btn-ghost disabled" href="javascript:void(0)" aria-disabled="true">Manage Users</a>
       </div>
     </div>
 
-    <div class="settings-hero-right">
-      <div class="mini-actions">
-        <a class="btn btn-ghost disabled" href="javascript:void(0)" aria-disabled="true" title="Coming next">
-          Edit Organization
-        </a>
-        <a class="btn btn-ghost disabled" href="javascript:void(0)" aria-disabled="true" title="Coming soon">
-          Manage Users
-        </a>
-      </div>
-      <div class="hint">
-        We’ll activate these actions as we build each settings section.
-      </div>
-    </div>
-  </div>
-
-  {% if not tenant %}
-    <div class="card warn">
-      <div class="warn-title">No tenant selected</div>
-      <div class="warn-text">
-        Your tenant middleware didn’t attach <code>request.tenant</code> for this request.
-        If your flow requires choosing a tenant first, next step we can redirect this page to the tenant select screen.
-      </div>
-    </div>
-  {% endif %}
-
-  <-----------------+------------------ Settings Sections -->
-  <div class="settings-grid">
-    {% for s in sections %}
-      <div class="card settings-card">
-        <div class="settings-card-head">
-          <div>
-            <div class="settings-card-title">{{ s.title }}</div>
-            <div class="settings-card-desc">{{ s.desc }}</div>
-          </div>
-          <div class="settings-card-cta">
-            <button class="btn btn-ghost disabled" type="button" title="{{ s.cta.hint }}" aria-disabled="true">
-              {{ s.cta.label }}
-            </button>
-          </div>
-        </div>
-
-        <div class="settings-kv">
-          {% for item in s.items %}
-            <div class="kv">
-              <div class="k">{{ item.label }}</div>
-              <div class="v">{{ item.value }}</div>
-            </div>
-          {% endfor %}
+    {% if not tenant %}
+      <div class="card warn">
+        <div class="warn-title">No tenant selected</div>
+        <div class="warn-text">
+          Settings are tenant-scoped. If you arrived here without selecting a tenant, we can force a redirect to the tenant select page next.
         </div>
       </div>
-    {% endfor %}
-  </div>
+    {% endif %}
 
+    <-----------------+------------------ Sections -->
+    <section id="org" class="card section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Organization</div>
+          <div class="section-desc">Basic tenant details and configuration.</div>
+        </div>
+        <div class="section-cta">
+          {% if tenant %}
+            <a class="btn btn-ghost" href="{% url 'settings_app:organization_edit' %}">Edit</a>
+          {% else %}
+            <a class="btn btn-ghost disabled" href="javascript:void(0)" aria-disabled="true">Edit</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="kv-grid">
+        <div class="kv">
+          <div class="k">Tenant</div>
+          <div class="v">{% if tenant %}{{ tenant }}{% else %}—{% endif %}</div>
+        </div>
+        <div class="kv">
+          <div class="k">Tenant ID</div>
+          <div class="v">{% if tenant %}{{ tenant.id }}{% else %}—{% endif %}</div>
+        </div>
+        <div class="kv">
+          <div class="k">Scope</div>
+          <div class="v">Tenant-scoped</div>
+        </div>
+        <div class="kv">
+          <div class="k">Module</div>
+          <div class="v">settings_app</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="users" class="card section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Users & Roles</div>
+          <div class="section-desc">Invites, roles, permissions, and access control.</div>
+        </div>
+        <div class="section-cta">
+          <span class="badge muted">Planned</span>
+        </div>
+      </div>
+
+      <div class="note">
+        This section will add role-based permissions (admin/manager/user) and user invites per tenant.
+      </div>
+    </section>
+
+    <section id="billing" class="card section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Billing</div>
+          <div class="section-desc">Subscription plan, invoices, and payment method.</div>
+        </div>
+        <div class="section-cta">
+          <span class="badge muted">Planned</span>
+        </div>
+      </div>
+
+      <div class="note">
+        This will connect to Stripe later without affecting fleet data.
+      </div>
+    </section>
+
+    <section id="appearance" class="card section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Appearance</div>
+          <div class="section-desc">Theme defaults and per-user preferences.</div>
+        </div>
+        <div class="section-cta">
+          <span class="badge muted">Planned</span>
+        </div>
+      </div>
+
+      <div class="note">
+        We can add per-user light/dark preferences here later while keeping your global theme intact.
+      </div>
+    </section>
+
+    <section id="security" class="card section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Security</div>
+          <div class="section-desc">Sessions, password policies, and audit logs.</div>
+        </div>
+        <div class="section-cta">
+          <span class="badge muted">Planned</span>
+        </div>
+      </div>
+
+      <div class="note">
+        Future: audit log entries tenant-scoped, admin-only views, and session control.
+      </div>
+    </section>
+
+  </main>
 </div>
 
-<style>
-  /* Keep this scoped so we don't disturb your global theme */
-  .settings-wrap{ display:flex; flex-direction:column; gap:14px; }
+<script>
+  // Highlight active section in sidebar
+  (function(){
+    const items = Array.from(document.querySelectorAll('.settings-nav .nav-item'));
+    const sections = items.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
 
-  .settings-hero{
-    display:flex; justify-content:space-between; gap:14px; align-items:stretch;
+    const setActive = (id) => {
+      items.forEach(a => a.classList.toggle('active', a.dataset.section === id));
+    };
+
+    const obs = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter(e => e.isIntersecting)
+        .sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (visible && visible.target && visible.target.id) setActive(visible.target.id);
+    }, { root: null, threshold: [0.25, 0.5, 0.75] });
+
+    sections.forEach(s => obs.observe(s));
+    setActive('org');
+  })();
+</script>
+
+<style>
+  /* Shell layout */
+  .settings-shell{ display:grid; grid-template-columns: 280px minmax(0,1fr); gap:14px; }
+  @media (max-width: 980px){
+    .settings-shell{ grid-template-columns: 1fr; }
   }
+
+  /* Sidebar */
+  .settings-nav{
+    position: sticky;
+    top: 12px;
+    align-self: start;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.03);
+    border-radius:18px;
+    padding:12px;
+  }
+  @media (max-width: 980px){
+    .settings-nav{ position: relative; top:auto; }
+  }
+
+  .nav-title{ font-size:13px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; opacity:.8; margin:4px 6px 10px; }
+
+  .nav-item{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 10px;
+    border-radius:14px;
+    border:1px solid transparent;
+    text-decoration:none;
+    background: transparent;
+    opacity:.9;
+    margin-bottom:8px;
+  }
+  .nav-item:hover{ background: rgba(255,255,255,.03); border-color: rgba(255,255,255,.08); }
+  .nav-item.active{
+    background: rgba(255,255,255,.04);
+    border-color: rgba(37,214,255,.28);
+    box-shadow: 0 0 0 4px rgba(37,214,255,.08);
+  }
+  .nav-dot{ width:8px; height:8px; border-radius:50%; background: rgba(37,214,255,.9); box-shadow: 0 0 0 4px rgba(37,214,255,.10); }
+  .nav-pill{
+    margin-left:auto;
+    font-size:11px;
+    font-weight:900;
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.03);
+  }
+  .nav-pill.muted{ opacity:.65; }
+  .nav-foot{
+    margin-top:14px;
+    padding-top:12px;
+    border-top:1px solid rgba(255,255,255,.10);
+  }
+  .small{ font-size:12px; }
+  .strong{ font-weight:900; }
+
+  /* Main */
+  .settings-main{ display:flex; flex-direction:column; gap:14px; }
+
+  /* Hero */
+  .settings-hero{ display:flex; justify-content:space-between; gap:14px; align-items:stretch; }
   @media (max-width: 980px){
     .settings-hero{ flex-direction:column; }
   }
+  .hero-title{ font-size:18px; font-weight:900; letter-spacing:.02em; }
+  .hero-sub{ opacity:.78; margin-top:6px; max-width:760px; }
 
-  .settings-title{ font-size:18px; font-weight:900; letter-spacing:.02em; }
-  .settings-subtitle{ opacity:.78; margin-top:6px; max-width:760px; }
-
-  .settings-meta{ display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+  .hero-meta{ display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
   .pill{
     display:inline-flex; align-items:center; gap:8px;
     padding:8px 12px; border-radius:999px;
@@ -105,38 +293,38 @@
     background: rgba(255,255,255,.03);
     font-size:12px; font-weight:800;
   }
-  .pill.subtle{ opacity:.85; }
   .dot{ width:8px; height:8px; border-radius:50%; background: rgba(37,214,255,.9); box-shadow: 0 0 0 4px rgba(37,214,255,.12); }
 
-  .settings-hero-right{ display:flex; flex-direction:column; gap:10px; justify-content:space-between; min-width:260px; }
-  .mini-actions{ display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; }
-  .hint{ opacity:.72; font-size:12px; text-align:right; }
+  .hero-actions{ display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; align-items:flex-start; }
 
-  .settings-grid{
-    display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:14px;
-  }
-  @media (max-width: 980px){
-    .settings-grid{ grid-template-columns: 1fr; }
-  }
+  /* Sections */
+  .section{ padding:14px; }
+  .section-head{ display:flex; gap:12px; align-items:flex-start; justify-content:space-between; }
+  .section-title{ font-size:15px; font-weight:900; }
+  .section-desc{ opacity:.74; margin-top:4px; font-size:13px; }
 
-  .settings-card-head{ display:flex; gap:12px; align-items:flex-start; justify-content:space-between; }
-  .settings-card-title{ font-size:15px; font-weight:900; }
-  .settings-card-desc{ opacity:.74; margin-top:4px; font-size:13px; }
-
-  .settings-kv{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; margin-top:12px; }
-  @media (max-width: 520px){
-    .settings-kv{ grid-template-columns: 1fr; }
-  }
-
+  .kv-grid{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; margin-top:12px; }
+  @media (max-width: 520px){ .kv-grid{ grid-template-columns: 1fr; } }
   .kv{ padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.03); }
-  .kv .k{ font-size:12px; letter-spacing:.02em; text-transform:uppercase; opacity:.72; margin-bottom:6px; }
+  .kv .k{ font-size:12px; letter-spacing:.02em; text-transform:uppercase; opacity:.72; margin-bottom:6px; font-weight:900; }
   .kv .v{ font-size:14px; }
+
+  .note{ border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.03); padding:12px 14px; border-radius:14px; opacity:.9; }
+
+  .badge{
+    font-size:11px;
+    font-weight:900;
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.03);
+  }
+  .badge.muted{ opacity:.65; }
 
   .warn{ border:1px solid rgba(255,195,66,.30); background: rgba(255,195,66,.07); }
   .warn-title{ font-weight:900; }
   .warn-text{ opacity:.85; margin-top:6px; }
 
-  /* Disabled buttons (we keep consistent with your theme) */
   .disabled{ opacity:.55; pointer-events:none; }
 </style>
 

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block page_title %}Remove Member{% endblock %}
+{% block page_subtitle %}Tenant: {{ tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div style="font-weight:850; font-size:16px; margin-bottom:6px;">Confirm removal</div>
+  <div style="opacity:.85; font-size:13px;">
+    You are about to remove this user from the tenant. This does not delete their account—only their access to this tenant.
+  </div>
+
+  <div style="margin-top:14px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.03); border-radius:14px; padding:12px;">
+    <div style="font-weight:800;">{{ target.user.get_full_name|default:target.user.get_username }}</div>
+    <div style="opacity:.85; margin-top:4px;">Role: <span style="font-weight:800;">{{ target.get_role_display }}</span></div>
+  </div>
+
+  <form method="post" style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+    {% csrf_token %}
+    <a class="btn btn-secondary" href="{% url 'settings_app:users_list' %}">Cancel</a>
+    <button class="btn btn-danger" type="submit">Remove from Tenant</button>
+  </form>
+
+  <div style="margin-top:10px; opacity:.7; font-size:12px;">
+    Guardrails: cannot remove yourself, cannot remove the last admin.
+  </div>
+</div>
+{% endblock %}

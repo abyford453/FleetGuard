@@ -3,14 +3,30 @@
 {% block page_subtitle %}Vehicle documents and uploads{% endblock %}
 {% block content %}
 
+<style>
+  .toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px;}
+  .searchbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .searchbar input,.searchbar select{min-width:190px;}
+  .panel{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:14px;box-shadow:0 12px 34px rgba(0,0,0,.25);}
+  table{width:100%;border-collapse:collapse;}
+  th,td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top;}
+  th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;}
+  .muted{opacity:.70;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);text-decoration:none;white-space:nowrap;background:transparent;}
+  .btn.primary{border-color:rgba(37,214,255,.35);}
+  .btn.danger{border-color:rgba(255,80,80,.35);}
+  a.filelink{text-decoration:none;}
+</style>
+
 <div class="toolbar">
   <form method="get" class="searchbar">
-    <input type="text" name="q" value="{{ q }}" placeholder="Search title, notes, unit, vin">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search title, notes, unit, vin, plate">
     <select name="vehicle">
       <option value="">All Vehicles</option>
       {% for v in vehicles %}
         <option value="{{ v.id }}" {% if vehicle_id|stringformat:"s" == v.id|stringformat:"s" %}selected{% endif %}>
-          {% if v.unit_number %}Unit {{ v.unit_number }} — {% endif %}{{ v.make }} {{ v.model }}
+          {% if v.unit_number %}Unit {{ v.unit_number }} — {% endif %}
+          {% if v.year %}{{ v.year }} {% endif %}{{ v.make }} {{ v.model }}
         </option>
       {% endfor %}
     </select>
@@ -20,7 +36,7 @@
         <option value="{{ key }}" {% if doc_type == key %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
-    <button class="btn">Filter</button>
+    <button class="btn" type="submit">Filter</button>
     <a class="btn" href="{% url 'documents:document_list' %}">Reset</a>
   </form>
 
@@ -35,7 +51,7 @@
           <th>Uploaded</th>
           <th>Vehicle</th>
           <th>Type</th>
-          <th>Title</th>
+          <th>Title / File</th>
           <th>Expires</th>
           <th></th>
         </tr>
@@ -44,19 +60,25 @@
         {% for d in documents %}
           <tr>
             <td>{{ d.uploaded_at|date:"Y-m-d" }}</td>
-            <td>{% if d.vehicle.unit_number %}Unit {{ d.vehicle.unit_number }}{% else %}Vehicle{% endif %}</td>
+            <td>
+              <strong>{% if d.vehicle.unit_number %}Unit {{ d.vehicle.unit_number }}{% else %}Vehicle{% endif %}</strong>
+              <div class="muted">{% if d.vehicle.year %}{{ d.vehicle.year }} {% endif %}{{ d.vehicle.make }} {{ d.vehicle.model }}</div>
+            </td>
             <td>{{ d.get_doc_type_display }}</td>
             <td>
-              <a href="{{ d.file.url }}" target="_blank">{{ d.title|default:"View File" }}</a>
+              <a class="filelink" href="{{ d.file.url }}" target="_blank">
+                <strong>{{ d.title|default:"View File" }}</strong>
+              </a>
+              {% if d.notes %}<div class="muted">{{ d.notes|truncatechars:120 }}</div>{% endif %}
             </td>
             <td>
               {% if d.expires_on %}
                 {{ d.expires_on }}
               {% else %}
-                —
+                <span class="muted">—</span>
               {% endif %}
             </td>
-            <td>
+            <td style="width:120px;">
               <form method="post" action="{% url 'documents:document_delete' d.id %}">
                 {% csrf_token %}
                 <button class="btn danger" type="submit">Delete</button>

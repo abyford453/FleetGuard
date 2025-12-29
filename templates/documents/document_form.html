@@ -1,21 +1,39 @@
 {% extends "base.html" %}
-{% block page_title %}Upload Document{% endblock %}
+{% block page_title %}{% if mode == "delete" %}Delete Document{% else %}Upload Document{% endif %}{% endblock %}
 {% block content %}
 
-<div class="panel" style="max-width:720px;">
+<style>
+  .panel{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:16px;box-shadow:0 12px 34px rgba(0,0,0,.25);max-width:760px;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);text-decoration:none;white-space:nowrap;background:transparent;}
+  .btn.primary{border-color:rgba(37,214,255,.35);}
+  .btn.danger{border-color:rgba(255,80,80,.35);}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+  label{font-weight:800;}
+  .muted{opacity:.70;}
+</style>
+
+<div class="panel">
   {% if mode == "delete" %}
-    <p>Delete document?</p>
+    <p>Delete this document?</p>
+    <p class="muted">
+      <strong>{{ doc.get_doc_type_display }}</strong>
+      {% if doc.title %} — {{ doc.title }}{% endif %}
+    </p>
     <form method="post">
       {% csrf_token %}
-      <button class="btn danger">Confirm Delete</button>
-      <a class="btn" href="{% url 'documents:document_list' %}">Cancel</a>
+      <div class="row">
+        <button class="btn danger" type="submit">Confirm Delete</button>
+        <a class="btn" href="{% url 'documents:document_list' %}">Cancel</a>
+      </div>
     </form>
   {% else %}
     <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
       {{ form.as_p }}
-      <button class="btn primary">Save</button>
-      <a class="btn" href="{% url 'documents:document_list' %}">Cancel</a>
+      <div class="row">
+        <button class="btn primary" type="submit">Save</button>
+        <a class="btn" href="{% url 'documents:document_list' %}">Cancel</a>
+      </div>
     </form>
   {% endif %}
 </div>

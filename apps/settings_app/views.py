@@ -15,7 +15,7 @@ from django.db import transaction
 from django.db.models import Q
 
 from apps.tenants.models import TenantMembership, TenantAuditEvent, TenantInvite
-from .forms import TenantSettingsForm, TenantUserCreateForm, TenantInviteCreateForm
+from .forms import TenantSettingsForm, TenantUserCreateForm, TenantInviteCreateForm, TenantAddExistingUserForm
 
 
 def _get_membership(request):
@@ -400,6 +400,54 @@ def user_add(request):
     return render(request, "settings_app/user_add_form.html", {"tenant": tenant, "form": form})
 
 
+
+@login_required
+@tenant_admin_required
+def user_add_existing(request):
+    """
+    Admin-only: attach an existing Django user to the current tenant with a selected role.
+    Lookup by username OR email.
+    """
+    tenant = getattr(request, "tenant", None)
+    User = get_user_model()
+
+    if request.method == "POST":
+        form = TenantAddExistingUserForm(request.POST)
+        if form.is_valid():
+            lookup = (form.cleaned_data.get("lookup") or "").strip()
+            role = (form.cleaned_data.get("role") or "user").strip().lower()
+
+            if role not in (TenantMembership.ROLE_ADMIN, TenantMembership.ROLE_USER):
+                role = TenantMembership.ROLE_USER
+
+            user = (
+                User.objects.filter(username__iexact=lookup).first()
+                or User.objects.filter(email__iexact=lookup).first()
+            )
+            if not user:
+                form.add_error("lookup", "No user found with that username or email.")
+            else:
+                if TenantMembership.objects.filter(tenant=tenant, user=user).exists():
+                    messages.info(request, "That user is already a member of this tenant.")
+                    return redirect("settings_app:users_list")
+
+                TenantMembership.objects.create(tenant=tenant, user=user, role=role)
+                _audit(
+                    request,
+                    "member_added_existing",
+                    message="Added existing member to tenant",
+                    meta={"username": user.get_username(), "role": role},
+                )
+                messages.success(request, f"Added existing user '{user.get_username()}' to tenant as {role}.")
+                return redirect("settings_app:users_list")
+        messages.error(request, "Please fix the errors below.")
+    else:
+        form = TenantAddExistingUserForm()
+
+    return render(request, "settings_app/user_add_existing_form.html", {"tenant": tenant, "form": form})
+
+
+
 @login_required
 @tenant_admin_required
 def user_remove_confirm(request, membership_id: int):
@@ -608,12 +656,14 @@ def users_invite(request):
 @tenant_admin_required
 def invites_list(request):
     tenant = getattr(request, "tenant", None)
+    base_url = request.build_absolute_uri("/")[:-1]
 
     qs = TenantInvite.objects.all()
     if "tenant" in _model_field_names(TenantInvite):
         qs = qs.filter(tenant=tenant)
 
     qs = qs.order_by("-id")[:200]
+
     invites = []
     token_field = _pick_field(TenantInvite, ["token", "invite_token", "key", "code"])
     role_field = _pick_field(TenantInvite, ["role"])
@@ -632,49 +682,105 @@ def invites_list(request):
                 "is_revoked": _invite_is_revoked(inv),
                 "is_used": _invite_is_used(inv),
                 "is_expired": _invite_is_expired(inv),
-                "accept_url": reverse("settings_app:invite_accept", args=[token]) if token else None,
+                "accept_url": (
+                    reverse("settings_app:invite_accept", args=[token])
+                    if token else None
+                ),
             }
         )
 
-    return render(request, "settings_app/invites_list.html", {"tenant": tenant, "invites": invites})
 
 
 @login_required
 @tenant_admin_required
 def invite_revoke(request, invite_id: int):
+    """
+    Admin-only: revoke an invite link for the current tenant.
+    Tenant-scoped if TenantInvite has a tenant field.
+    No hard dependency on specific model field names (revoked_at/revoked/status).
+    """
     tenant = getattr(request, "tenant", None)
 
-    qs = TenantInvite.objects.filter(id=invite_id)
+    qs = TenantInvite.objects.all()
     if "tenant" in _model_field_names(TenantInvite):
         qs = qs.filter(tenant=tenant)
 
-    inv = qs.first()
+    inv = qs.filter(id=invite_id).first()
     if not inv:
         messages.error(request, "Invite not found for this tenant.")
         return redirect("settings_app:invites_list")
 
+    # If already used or already revoked, do nothing but inform.
     if _invite_is_used(inv):
-        messages.error(request, "This invite has already been used and cannot be revoked.")
+        messages.info(request, "That invite was already used and cannot be revoked.")
         return redirect("settings_app:invites_list")
 
-    revoked_at_field = _pick_field(TenantInvite, ["revoked_at"])
+    if _invite_is_revoked(inv):
+        messages.info(request, "That invite is already revoked.")
+        return redirect("settings_app:invites_list")
+
+    update_fields = []
+
+    # Mark revoked using whichever fields exist.
+    revoked_at_field = _pick_field(TenantInvite, ["revoked_at", "revoked_on"])
+    revoked_by_field = _pick_field(TenantInvite, ["revoked_by"])
     revoked_bool_field = _pick_field(TenantInvite, ["revoked", "is_revoked"])
+    status_field = _pick_field(TenantInvite, ["status"])
 
-    if request.method == "POST":
-        if revoked_at_field:
-            setattr(inv, revoked_at_field, timezone.now())
-        elif revoked_bool_field:
+    if revoked_at_field:
+        setattr(inv, revoked_at_field, timezone.now())
+        update_fields.append(revoked_at_field)
+
+    if revoked_by_field:
+        try:
+            setattr(inv, revoked_by_field, request.user)
+            update_fields.append(revoked_by_field)
+        except Exception:
+            pass
+
+    if revoked_bool_field:
+        try:
             setattr(inv, revoked_bool_field, True)
-        inv.save()
+            update_fields.append(revoked_bool_field)
+        except Exception:
+            pass
 
-        _audit(request, "invite_revoked", message="Invite revoked", meta={"invite_id": inv.id})
-        messages.success(request, "Invite revoked.")
+    if status_field:
+        try:
+            setattr(inv, status_field, "revoked")
+            update_fields.append(status_field)
+        except Exception:
+            pass
+
+    # Worst-case fallback: save without update_fields
+    try:
+        if update_fields:
+            inv.save(update_fields=list(dict.fromkeys(update_fields)))
+        else:
+            inv.save()
+    except Exception:
+        messages.error(request, "Could not revoke invite (model fields mismatch).")
         return redirect("settings_app:invites_list")
 
-    # Small inline confirm
-    token_field = _pick_field(TenantInvite, ["token", "invite_token", "key", "code"])
-    token = getattr(inv, token_field) if token_field else ""
-    return render(request, "settings_app/invite_revoke_confirm.html", {"tenant": tenant, "invite": inv, "token": token})
+    _audit(
+        request,
+        "invite_revoked",
+        message="Invite revoked",
+        meta={"invite_id": inv.id},
+    )
+    messages.success(request, "Invite revoked.")
+    return redirect("settings_app:invites_list")
+
+
+    return render(
+        request,
+        "settings_app/invites_list.html",
+        {
+            "tenant": tenant,
+            "invites": invites,
+            "base_url": base_url,
+        },
+    )
 
 
 @login_required
@@ -763,3 +869,53 @@ def invite_accept(request, token: str):
             "invite_role": desired_role,
         },
     )
+
+
+# -----------------------------
+# HOTFIX OVERRIDE: invites_list
+# Ensures the view always returns an HttpResponse.
+# -----------------------------
+@login_required
+@tenant_admin_required
+def invites_list(request):
+    tenant = getattr(request, "tenant", None)
+    base_url = request.build_absolute_uri("/")[:-1]
+
+    qs = TenantInvite.objects.all()
+    if "tenant" in _model_field_names(TenantInvite):
+        qs = qs.filter(tenant=tenant)
+
+    qs = qs.order_by("-id")[:200]
+
+    invites = []
+    token_field = _pick_field(TenantInvite, ["token", "invite_token", "key", "code"])
+    role_field = _pick_field(TenantInvite, ["role"])
+    email_field = _pick_field(TenantInvite, ["email", "invite_email"])
+    expires_field = _pick_field(TenantInvite, ["expires_at", "expires_on", "expires"])
+
+    for inv in qs:
+        token = getattr(inv, token_field) if token_field else ""
+        invites.append(
+            {
+                "id": inv.id,
+                "token": token,
+                "role": getattr(inv, role_field) if role_field else "",
+                "email": getattr(inv, email_field) if email_field else "",
+                "expires_at": getattr(inv, expires_field) if expires_field else None,
+                "is_revoked": _invite_is_revoked(inv),
+                "is_used": _invite_is_used(inv),
+                "is_expired": _invite_is_expired(inv),
+                "accept_url": (reverse("settings_app:invite_accept", args=[token]) if token else None),
+            }
+        )
+
+    return render(
+        request,
+        "settings_app/invites_list.html",
+        {
+            "tenant": tenant,
+            "invites": invites,
+            "base_url": base_url,
+        },
+    )
+

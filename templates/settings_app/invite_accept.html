@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block page_title %}Accept Invite{% endblock %}
+{% block page_subtitle %}Tenant: {{ tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:720px;">
+  <div style="font-weight:850; font-size:16px; margin-bottom:6px;">Join this tenant?</div>
+  <div style="opacity:.85; font-size:13px; margin-bottom:14px;">
+    You are about to join <strong>{{ tenant.name }}</strong> with role: <strong>{{ invite_role }}</strong>.
+  </div>
+
+  <div style="padding:12px; border:1px solid rgba(255,255,255,.10); border-radius:12px; background: rgba(255,255,255,.03);">
+    <div style="opacity:.8; font-size:12px;">Invite token</div>
+    <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size:12px; margin-top:6px;">
+      {{ token }}
+    </div>
+  </div>
+
+  <form method="post" style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+    {% csrf_token %}
+    <button class="btn" type="submit">Accept invite</button>
+    <a class="btn btn-secondary" href="{% url 'settings_app:index' %}">Cancel</a>
+  </form>
+
+  <div style="margin-top:12px; opacity:.75; font-size:12px;">
+    This link is tenant-scoped and can be revoked or expire.
+  </div>
+</div>
+{% endblock %}

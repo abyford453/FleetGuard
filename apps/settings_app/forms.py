@@ -73,3 +73,8 @@ class TenantUserCreateForm(forms.Form):
                 self.add_error("password1", e)
         return cleaned
 
+class TenantInviteCreateForm(forms.Form):
+    email = forms.EmailField(required=False, help_text="Optional (useful if you later email invites).")
+    role = forms.ChoiceField(choices=(("user","User"),("admin","Admin")), initial="user")
+    expires_in_days = forms.IntegerField(min_value=1, max_value=365, initial=7, help_text="How many days until the invite expires.")
+

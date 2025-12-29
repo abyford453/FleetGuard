@@ -1,44 +1,64 @@
 {% extends "base.html" %}
 {% block page_title %}Audit Log{% endblock %}
-{% block page_subtitle %}Tenant-scoped activity (latest first){% endblock %}
+{% block page_subtitle %}Tenant: {{ tenant.name }}{% endblock %}
 
 {% block content %}
-<div class="card" style="margin-bottom:14px;">
+<div class="card">
   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
     <div>
-      <div style="font-weight:850; font-size:16px; margin-bottom:4px;">{{ tenant.name }}</div>
-      <div style="opacity:.8; font-size:13px;">
-        Showing the latest 200 events. This log is tenant-scoped and admin-only.
-      </div>
+      <div style="font-weight:850; font-size:16px; margin-bottom:4px;">Recent activity</div>
+      <div style="opacity:.85; font-size:13px;">Tenant-scoped audit trail (last 200).</div>
     </div>
-    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <a class="btn btn-secondary" href="{% url 'settings_app:index' %}">Back to Settings</a>
     </div>
   </div>
-</div>
 
-<div class="card">
-  <div style="overflow:auto;">
+  <form method="get" style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
+    <div>
+      <div style="opacity:.75; font-size:12px; margin-bottom:6px;">Action</div>
+      <select name="action" style="min-width:200px;">
+        <option value="">All actions</option>
+        {% for a in actions %}
+          <option value="{{ a }}" {% if action == a %}selected{% endif %}>{{ a }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <div style="opacity:.75; font-size:12px; margin-bottom:6px;">Start (YYYY-MM-DD)</div>
+      <input type="text" name="start" value="{{ start|default:'' }}" placeholder="2025-12-01" style="min-width:160px;" />
+    </div>
+    <div>
+      <div style="opacity:.75; font-size:12px; margin-bottom:6px;">End (YYYY-MM-DD)</div>
+      <input type="text" name="end" value="{{ end|default:'' }}" placeholder="2025-12-31" style="min-width:160px;" />
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn btn-secondary" type="submit">Filter</button>
+      <a class="btn btn-secondary" href="{% url 'settings_app:audit_log' %}">Reset</a>
+    </div>
+  </form>
+
+  <div style="margin-top:14px; overflow:auto;">
     <table class="table" style="width:100%;">
       <thead>
         <tr>
-          <th style="min-width:180px;">Time</th>
-          <th style="min-width:160px;">Actor</th>
-          <th style="min-width:180px;">Action</th>
-          <th>Message</th>
+          <th style="text-align:left;">Time</th>
+          <th style="text-align:left;">Actor</th>
+          <th style="text-align:left;">Action</th>
+          <th style="text-align:left;">Message</th>
         </tr>
       </thead>
       <tbody>
         {% for e in events %}
           <tr>
             <td style="opacity:.85;">{{ e.created_at|date:"Y-m-d H:i" }}</td>
-            <td style="font-weight:750;">{% if e.actor %}{{ e.actor.get_username }}{% else %}system{% endif %}</td>
-            <td style="font-weight:750;">{{ e.get_action_display }}</td>
+            <td style="opacity:.9;">{% if e.actor %}{{ e.actor.get_username }}{% else %}—{% endif %}</td>
+            <td><span class="badge badge-muted">{{ e.action }}</span></td>
             <td style="opacity:.9;">{{ e.message }}</td>
           </tr>
         {% empty %}
           <tr>
-            <td colspan="4" style="opacity:.8;">No audit events yet.</td>
+            <td colspan="4" style="opacity:.8;">No audit events found.</td>
           </tr>
         {% endfor %}
       </tbody>

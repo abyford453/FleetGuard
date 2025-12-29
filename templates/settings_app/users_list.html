@@ -74,7 +74,7 @@
 
               {# Remove #}
               {% if r.can_remove %}
-                <a class="btn btn-danger" href="{% url 'settings_app:user_remove' r.membership_id %}">Remove</a>
+                <a class="btn btn-danger" href="{% url 'settings_app:user_remove_confirm' r.membership_id %}">Remove</a>
               {% else %}
                 <button class="btn btn-danger" type="button" disabled aria-disabled="true" title="{{ r.remove_reason|default:'Not allowed' }}">
                   Remove

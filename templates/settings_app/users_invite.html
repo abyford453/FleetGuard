@@ -1,34 +1,49 @@
 {% extends "base.html" %}
-{% block page_title %}Invite User{% endblock %}
+{% block page_title %}Create Invite Link{% endblock %}
 {% block page_subtitle %}Tenant: {{ tenant.name }}{% endblock %}
 
 {% block content %}
-<div class="card" style="margin-bottom:14px;">
-  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
     <div>
-      <div style="font-weight:850; font-size:16px; margin-bottom:4px;">Invites are not enabled yet</div>
-      <div style="opacity:.85; font-size:13px; max-width:780px;">
-        This screen is reserved for the future invite flow (email invites or join links). For now, users must be created by an admin and
-        linked to the tenant via membership.
-      </div>
+      <div style="font-weight:850; font-size:16px; margin-bottom:4px;">New invite link</div>
+      <div style="opacity:.85; font-size:13px;">Creates a tenant-scoped token link (no email sending required).</div>
     </div>
-    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-      <a class="btn btn-secondary" href="{% url 'settings_app:users_list' %}">Back to Users</a>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <a class="btn btn-secondary" href="{% url 'settings_app:invites_list' %}">Back to Invites</a>
     </div>
   </div>
-</div>
 
-<div class="card">
-  <div style="font-weight:800; margin-bottom:8px;">Planned invite options</div>
-  <ul style="margin:0; padding-left:18px; opacity:.9;">
-    <li>Email invite with one-time token</li>
-    <li>Time-limited join link</li>
-    <li>Default role selection (User/Admin)</li>
-    <li>Audit log entries for invite + acceptance</li>
-  </ul>
+  <form method="post" style="margin-top:16px; display:grid; gap:12px; max-width:640px;">
+    {% csrf_token %}
+    <div>
+      <label style="display:block; font-weight:750; margin-bottom:6px;">Email (optional)</label>
+      {{ form.email }}
+      {% if form.email.errors %}<div style="color:#ff6b6b; margin-top:6px;">{{ form.email.errors }}</div>{% endif %}
+      <div style="opacity:.7; font-size:12px; margin-top:6px;">Optional. Useful later if you email invites.</div>
+    </div>
 
-  <div style="margin-top:12px; opacity:.7; font-size:12px;">
-    Coming later: this will be enabled once we finalize the role/permission model.
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+      <div>
+        <label style="display:block; font-weight:750; margin-bottom:6px;">Role</label>
+        {{ form.role }}
+        {% if form.role.errors %}<div style="color:#ff6b6b; margin-top:6px;">{{ form.role.errors }}</div>{% endif %}
+      </div>
+      <div>
+        <label style="display:block; font-weight:750; margin-bottom:6px;">Expires in (days)</label>
+        {{ form.expires_in_days }}
+        {% if form.expires_in_days.errors %}<div style="color:#ff6b6b; margin-top:6px;">{{ form.expires_in_days.errors }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:6px;">
+      <button class="btn" type="submit">Create invite</button>
+      <a class="btn btn-secondary" href="{% url 'settings_app:invites_list' %}">Cancel</a>
+    </div>
+  </form>
+
+  <div style="margin-top:14px; opacity:.75; font-size:12px;">
+    Invites are tenant-scoped by your current tenant selection (subdomain / active tenant).
   </div>
 </div>
 {% endblock %}

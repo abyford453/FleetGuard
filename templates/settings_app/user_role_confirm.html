@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block page_title %}Change Role{% endblock %}
+{% block page_subtitle %}Tenant: {{ tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:760px;">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+    <div>
+      <div style="font-weight:850; font-size:16px; margin-bottom:4px;">Confirm role change</div>
+      <div style="opacity:.85; font-size:13px;">
+        You are changing access for <span style="font-weight:800;">{{ target.user.get_username }}</span>.
+        This is tenant-scoped and takes effect immediately.
+      </div>
+    </div>
+    <div>
+      <a class="btn btn-secondary" href="{% url 'settings_app:users_list' %}">Back</a>
+    </div>
+  </div>
+
+  <div style="margin-top:14px;">
+    <table class="table" style="width:100%;">
+      <tbody>
+        <tr>
+          <td style="width:220px; opacity:.8;">Current role</td>
+          <td style="font-weight:800;">{{ target.get_role_display }}</td>
+        </tr>
+        <tr>
+          <td style="opacity:.8;">Email</td>
+          <td style="font-weight:700;">{{ target.user.email|default:"" }}</td>
+        </tr>
+        <tr>
+          <td style="opacity:.8;">Joined</td>
+          <td style="font-weight:700;">{{ target.created_at|date:"Y-m-d" }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  {% if is_last_admin %}
+    <div class="card" style="margin-top:12px; padding:12px; background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.10);">
+      <div style="font-weight:850; margin-bottom:4px;">Last admin protection</div>
+      <div style="opacity:.85; font-size:13px;">
+        This member is currently the last Admin in the tenant. They cannot be demoted until another Admin exists.
+      </div>
+    </div>
+  {% endif %}
+
+  <form method="post" style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+    {% csrf_token %}
+    <label style="font-weight:800;">New role</label>
+    <select name="role" class="input" style="min-width:200px;" {% if is_last_admin %}disabled{% endif %}>
+      <option value="admin" {% if target.role == "admin" %}selected{% endif %}>Admin</option>
+      <option value="user" {% if target.role == "user" %}selected{% endif %}>User</option>
+    </select>
+
+    {% if is_last_admin %}
+      <button class="btn" type="button" disabled aria-disabled="true" title="Cannot demote the last admin">Save</button>
+    {% else %}
+      <button class="btn" type="submit">Save</button>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

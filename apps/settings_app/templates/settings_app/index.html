@@ -6,35 +6,34 @@
 
 <div class="settings-shell">
 
-  <-----------------+------------------ Sidebar -->
   <aside class="settings-nav">
     <div class="nav-title">Settings</div>
 
-    <a class="nav-item" href="#org" data-section="org">
+    <a class="nav-item active" href="#org">
       <span class="nav-dot"></span>
       Organization
       <span class="nav-pill">{% if tenant %}Active{% else %}None{% endif %}</span>
     </a>
 
-    <a class="nav-item" href="#users" data-section="users">
+    <a class="nav-item" href="#users">
       <span class="nav-dot"></span>
       Users & Roles
       <span class="nav-pill muted">Soon</span>
     </a>
 
-    <a class="nav-item" href="#billing" data-section="billing">
+    <a class="nav-item" href="#billing">
       <span class="nav-dot"></span>
       Billing
       <span class="nav-pill muted">Soon</span>
     </a>
 
-    <a class="nav-item" href="#appearance" data-section="appearance">
+    <a class="nav-item" href="#appearance">
       <span class="nav-dot"></span>
       Appearance
       <span class="nav-pill muted">Soon</span>
     </a>
 
-    <a class="nav-item" href="#security" data-section="security">
+    <a class="nav-item" href="#security">
       <span class="nav-dot"></span>
       Security
       <span class="nav-pill muted">Soon</span>
@@ -50,15 +49,13 @@
     </div>
   </aside>
 
-  <-----------------+------------------ Main -->
   <main class="settings-main">
 
-    <-----------------+------------------ Hero / quick actions -->
     <div class="card settings-hero">
       <div class="hero-left">
         <div class="hero-title">Control Center</div>
         <div class="hero-sub">
-          A central place for tenant settings now. Users/roles, billing, and security will plug in here next.
+          Organization settings now. Users/roles, billing, and security will plug in here next.
         </div>
 
         <div class="hero-meta">
@@ -76,22 +73,12 @@
         {% if tenant %}
           <a class="btn" href="{% url 'settings_app:organization_edit' %}">Edit Organization</a>
         {% else %}
-          <a class="btn disabled" href="javascript:void(0)" aria-disabled="true" title="Select a tenant first">Edit Organization</a>
+          <a class="btn disabled" href="javascript:void(0)" aria-disabled="true">Edit Organization</a>
         {% endif %}
         <a class="btn btn-ghost disabled" href="javascript:void(0)" aria-disabled="true">Manage Users</a>
       </div>
     </div>
 
-    {% if not tenant %}
-      <div class="card warn">
-        <div class="warn-title">No tenant selected</div>
-        <div class="warn-text">
-          Settings are tenant-scoped. If you arrived here without selecting a tenant, we can force a redirect to the tenant select page next.
-        </div>
-      </div>
-    {% endif %}
-
-    <-----------------+------------------ Sections -->
     <section id="org" class="card section">
       <div class="section-head">
         <div>
@@ -131,32 +118,26 @@
       <div class="section-head">
         <div>
           <div class="section-title">Users & Roles</div>
-          <div class="section-desc">Invites, roles, permissions, and access control.</div>
+          <div class="section-desc">Invites, roles, permissions, access control.</div>
         </div>
         <div class="section-cta">
           <span class="badge muted">Planned</span>
         </div>
       </div>
-
-      <div class="note">
-        This section will add role-based permissions (admin/manager/user) and user invites per tenant.
-      </div>
+      <div class="note">Next: role-based permissions + per-tenant user invites.</div>
     </section>
 
     <section id="billing" class="card section">
       <div class="section-head">
         <div>
           <div class="section-title">Billing</div>
-          <div class="section-desc">Subscription plan, invoices, and payment method.</div>
+          <div class="section-desc">Plan, invoices, payment method.</div>
         </div>
         <div class="section-cta">
           <span class="badge muted">Planned</span>
         </div>
       </div>
-
-      <div class="note">
-        This will connect to Stripe later without affecting fleet data.
-      </div>
+      <div class="note">Later: connect Stripe without affecting fleet data.</div>
     </section>
 
     <section id="appearance" class="card section">
@@ -169,84 +150,46 @@
           <span class="badge muted">Planned</span>
         </div>
       </div>
-
-      <div class="note">
-        We can add per-user light/dark preferences here later while keeping your global theme intact.
-      </div>
+      <div class="note">Later: per-user theme + UI defaults while keeping your global theme intact.</div>
     </section>
 
     <section id="security" class="card section">
       <div class="section-head">
         <div>
           <div class="section-title">Security</div>
-          <div class="section-desc">Sessions, password policies, and audit logs.</div>
+          <div class="section-desc">Sessions, policies, audit logs.</div>
         </div>
         <div class="section-cta">
           <span class="badge muted">Planned</span>
         </div>
       </div>
-
-      <div class="note">
-        Future: audit log entries tenant-scoped, admin-only views, and session control.
-      </div>
+      <div class="note">Future: tenant-scoped audit events + admin-only views.</div>
     </section>
 
   </main>
 </div>
 
-<script>
-  // Highlight active section in sidebar
-  (function(){
-    const items = Array.from(document.querySelectorAll('.settings-nav .nav-item'));
-    const sections = items.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
-
-    const setActive = (id) => {
-      items.forEach(a => a.classList.toggle('active', a.dataset.section === id));
-    };
-
-    const obs = new IntersectionObserver((entries) => {
-      const visible = entries
-        .filter(e => e.isIntersecting)
-        .sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
-      if (visible && visible.target && visible.target.id) setActive(visible.target.id);
-    }, { root: null, threshold: [0.25, 0.5, 0.75] });
-
-    sections.forEach(s => obs.observe(s));
-    setActive('org');
-  })();
-</script>
-
 <style>
-  /* Shell layout */
   .settings-shell{ display:grid; grid-template-columns: 280px minmax(0,1fr); gap:14px; }
-  @media (max-width: 980px){
-    .settings-shell{ grid-template-columns: 1fr; }
-  }
+  @media (max-width: 980px){ .settings-shell{ grid-template-columns: 1fr; } }
 
-  /* Sidebar */
   .settings-nav{
-    position: sticky;
-    top: 12px;
-    align-self: start;
+    position: sticky; top: 12px; align-self: start;
     border:1px solid rgba(255,255,255,.10);
     background: rgba(255,255,255,.03);
     border-radius:18px;
     padding:12px;
   }
-  @media (max-width: 980px){
-    .settings-nav{ position: relative; top:auto; }
-  }
+  @media (max-width: 980px){ .settings-nav{ position: relative; top:auto; } }
 
   .nav-title{ font-size:13px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; opacity:.8; margin:4px 6px 10px; }
-
   .nav-item{
     display:flex; align-items:center; gap:10px;
-    padding:10px 10px;
-    border-radius:14px;
+    padding:10px 10px; border-radius:14px;
     border:1px solid transparent;
     text-decoration:none;
     background: transparent;
-    opacity:.9;
+    opacity:.92;
     margin-bottom:8px;
   }
   .nav-item:hover{ background: rgba(255,255,255,.03); border-color: rgba(255,255,255,.08); }
@@ -258,33 +201,26 @@
   .nav-dot{ width:8px; height:8px; border-radius:50%; background: rgba(37,214,255,.9); box-shadow: 0 0 0 4px rgba(37,214,255,.10); }
   .nav-pill{
     margin-left:auto;
-    font-size:11px;
-    font-weight:900;
-    padding:6px 10px;
-    border-radius:999px;
+    font-size:11px; font-weight:900;
+    padding:6px 10px; border-radius:999px;
     border:1px solid rgba(255,255,255,.10);
     background: rgba(255,255,255,.03);
   }
   .nav-pill.muted{ opacity:.65; }
   .nav-foot{
-    margin-top:14px;
-    padding-top:12px;
+    margin-top:14px; padding-top:12px;
     border-top:1px solid rgba(255,255,255,.10);
   }
   .small{ font-size:12px; }
   .strong{ font-weight:900; }
+  .muted{ opacity:.75; }
 
-  /* Main */
   .settings-main{ display:flex; flex-direction:column; gap:14px; }
 
-  /* Hero */
   .settings-hero{ display:flex; justify-content:space-between; gap:14px; align-items:stretch; }
-  @media (max-width: 980px){
-    .settings-hero{ flex-direction:column; }
-  }
+  @media (max-width: 980px){ .settings-hero{ flex-direction:column; } }
   .hero-title{ font-size:18px; font-weight:900; letter-spacing:.02em; }
   .hero-sub{ opacity:.78; margin-top:6px; max-width:760px; }
-
   .hero-meta{ display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
   .pill{
     display:inline-flex; align-items:center; gap:8px;
@@ -294,10 +230,9 @@
     font-size:12px; font-weight:800;
   }
   .dot{ width:8px; height:8px; border-radius:50%; background: rgba(37,214,255,.9); box-shadow: 0 0 0 4px rgba(37,214,255,.12); }
-
   .hero-actions{ display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; align-items:flex-start; }
+  .disabled{ opacity:.55; pointer-events:none; }
 
-  /* Sections */
   .section{ padding:14px; }
   .section-head{ display:flex; gap:12px; align-items:flex-start; justify-content:space-between; }
   .section-title{ font-size:15px; font-weight:900; }
@@ -312,20 +247,12 @@
   .note{ border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.03); padding:12px 14px; border-radius:14px; opacity:.9; }
 
   .badge{
-    font-size:11px;
-    font-weight:900;
-    padding:6px 10px;
-    border-radius:999px;
+    font-size:11px; font-weight:900;
+    padding:6px 10px; border-radius:999px;
     border:1px solid rgba(255,255,255,.10);
     background: rgba(255,255,255,.03);
   }
   .badge.muted{ opacity:.65; }
-
-  .warn{ border:1px solid rgba(255,195,66,.30); background: rgba(255,195,66,.07); }
-  .warn-title{ font-weight:900; }
-  .warn-text{ opacity:.85; margin-top:6px; }
-
-  .disabled{ opacity:.55; pointer-events:none; }
 </style>
 
 {% endblock %}

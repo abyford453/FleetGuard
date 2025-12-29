@@ -24,6 +24,10 @@
 </style>
 
 <div class="toolbar">
+  <div class="muted" style="margin:0 0 8px 0;">
+    Defaults: inspection due every <strong>{{ tenant.default_inspection_due_days }}</strong> days • alert <strong>{{ tenant.inspection_alert_days_before }}</strong> days before
+  </div>
+
   <form class="searchbar" method="get">
     <input type="text" name="q" value="{{ q }}" placeholder="Search alerts (title, details, unit, vin, plate)">
 

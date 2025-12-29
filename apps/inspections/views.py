@@ -113,7 +113,8 @@ def inspection_list(request):
 
     if due_soon == "1":
         today = timezone.localdate()
-        soon = today + timezone.timedelta(days=7)
+        lead_days = getattr(tenant, "inspection_alert_days_before", 7)
+        soon = today + timezone.timedelta(days=int(lead_days))
         qs = qs.filter(due_date__isnull=False, due_date__gte=today, due_date__lte=soon).exclude(status=Inspection.STATUS_COMPLETED)
 
     if overdue == "1":

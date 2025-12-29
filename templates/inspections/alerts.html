@@ -97,6 +97,18 @@
             <td>
               <div class="actions">
                 <a class="btn" href="{% url 'inspections:alert_update' a.id %}">Edit</a>
+                {% if can_manage_alerts and a.status == "open" %}
+                  <form method="post" action="{% url 'inspections:alert_ack' a.id %}">
+                    {% csrf_token %}
+                    <button class="btn" type="submit">Acknowledge</button>
+                  </form>
+                {% endif %}
+                {% if can_manage_alerts and not a.assigned_to %}
+                  <form method="post" action="{% url 'inspections:alert_assign_to_me' a.id %}">
+                    {% csrf_token %}
+                    <button class="btn" type="submit">Assign to me</button>
+                  </form>
+                {% endif %}
                 {% if can_manage_alerts and a.status != "closed" %}
                   <form method="post" action="{% url 'inspections:alert_close' a.id %}">
                     {% csrf_token %}

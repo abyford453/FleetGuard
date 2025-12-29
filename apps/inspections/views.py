@@ -352,3 +352,29 @@ def alert_close(request, pk: int):
         alert.close(request.user)
 
     return redirect("inspections:alerts")
+
+@login_required
+def alert_ack(request, pk: int):
+    tenant = request.tenant
+    alert = get_object_or_404(InspectionAlert, pk=pk, tenant=tenant)
+    if not _can_manage_alerts(request.user):
+        return redirect("inspections:alerts")
+    if request.method == "POST":
+        if alert.status == InspectionAlert.STATUS_OPEN:
+            alert.status = InspectionAlert.STATUS_ACK
+            alert.save(update_fields=["status"])
+    return redirect("inspections:alerts")
+
+
+@login_required
+def alert_assign_to_me(request, pk: int):
+    tenant = request.tenant
+    alert = get_object_or_404(InspectionAlert, pk=pk, tenant=tenant)
+    if not _can_manage_alerts(request.user):
+        return redirect("inspections:alerts")
+    if request.method == "POST":
+        alert.assigned_to = request.user
+        if alert.status == InspectionAlert.STATUS_OPEN:
+            alert.status = InspectionAlert.STATUS_ACK
+        alert.save(update_fields=["assigned_to", "status"])
+    return redirect("inspections:alerts")

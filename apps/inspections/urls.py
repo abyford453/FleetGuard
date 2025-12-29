@@ -14,5 +14,7 @@ urlpatterns = [
     # Alerts
     path("alerts/", views.alert_list, name="alerts"),
     path("alerts/<int:pk>/edit/", views.alert_update, name="alert_update"),
+    path("alerts/<int:pk>/ack/", views.alert_ack, name="alert_ack"),
+    path("alerts/<int:pk>/assign_to_me/", views.alert_assign_to_me, name="alert_assign_to_me"),
     path("alerts/<int:pk>/close/", views.alert_close, name="alert_close"),
 ]

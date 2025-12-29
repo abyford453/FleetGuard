@@ -88,13 +88,30 @@
       <div class="muted">Docs expiring soon — review before they lapse.</div>
     </a>
 
-  </div>
+  
+    <a class="card warn" href="{% url 'fuel:alerts' %}">
+      <div>
+        <div class="k">Fuel: Missing / Stale Logs (30 days)</div>
+        <div class="v">{{ fuel_stale_count }}</div>
+      </div>
+      <div class="muted">Vehicles with no fuel logs recently.</div>
+    </a>
+
+    <a class="card danger" href="{% url 'fuel:alerts' %}">
+      <div>
+        <div class="k">Fuel: Odometer Issues</div>
+        <div class="v">{{ fuel_odo_alert_count }}</div>
+      </div>
+      <div class="muted">Possible data entry errors detected.</div>
+    </a>
+</div>
 
   <div class="row">
     <a class="btn" href="{% url 'fleet:vehicle_list' %}">Vehicles</a>
     <a class="btn" href="{% url 'inspections:list' %}">Inspections</a>
     <a class="btn" href="{% url 'inspections:alerts' %}">Alerts</a>
     <a class="btn" href="{% url 'documents:document_list' %}">Documents</a>
+    <a class="btn" href="{% url 'fuel:list' %}">Fuel</a>
   </div>
 </div>
 

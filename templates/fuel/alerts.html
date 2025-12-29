@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block page_title %}Fuel Alerts{% endblock %}
+{% block page_subtitle %}Missing logs and odometer issues{% endblock %}
+{% block content %}
+
+<style>
+  .panel{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:14px;box-shadow:0 12px 34px rgba(0,0,0,.25);}
+  .summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+  .pill{padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);font-weight:850;font-size:12px;}
+  .warn{border-color:rgba(255,200,60,.35);background:rgba(255,200,60,.08);}
+  .danger{border-color:rgba(255,80,80,.35);background:rgba(255,80,80,.08);}
+  table{width:100%;border-collapse:collapse;}
+  th,td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top;}
+  th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;}
+  .muted{opacity:.70;}
+</style>
+
+<div class="summary">
+  <span class="pill warn">Missing / Stale Logs: {{ stale_count }}</span>
+  <span class="pill danger">Odometer Regressions: {{ odo_count }}</span>
+  <a class="pill" style="text-decoration:none;" href="{% url 'fuel:list' %}">Back to Fuel</a>
+</div>
+
+<div class="panel">
+  {% if alerts %}
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Vehicle</th>
+          <th>Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in alerts %}
+          <tr>
+            <td>
+              {% if a.kind == "odometer_regression" %}
+                <span class="pill danger">Odometer</span>
+              {% else %}
+                <span class="pill warn">Missing Logs</span>
+              {% endif %}
+            </td>
+            <td><strong>{{ a.vehicle_label }}</strong></td>
+            <td class="muted">{{ a.detail }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No fuel alerts right now.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

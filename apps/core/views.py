@@ -3,16 +3,21 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from apps.inspections.models import Inspection, InspectionAlert
+from apps.documents.models import VehicleDocument
+from apps.fuel.alerts import vehicles_missing_fuel_logs, odometer_regressions
+
 
 def home(request):
     # Always send to login for now (hero page)
     return redirect("accounts:login")
 
+
 @login_required
 def dashboard(request):
     tenant = request.tenant
     today = timezone.localdate()
-    soon = today + timezone.timedelta(days=7)
+    soon7 = today + timezone.timedelta(days=7)
+    soon30 = today + timezone.timedelta(days=30)
 
     open_alerts = (
         InspectionAlert.objects
@@ -30,10 +35,27 @@ def dashboard(request):
 
     due_soon_inspections = (
         Inspection.objects
-        .filter(tenant=tenant, due_date__isnull=False, due_date__gte=today, due_date__lte=soon)
+        .filter(tenant=tenant, due_date__isnull=False, due_date__gte=today, due_date__lte=soon7)
         .exclude(status=Inspection.STATUS_COMPLETED)
         .count()
     )
+
+    expired_docs = (
+        VehicleDocument.objects
+        .filter(tenant=tenant, expires_on__isnull=False, expires_on__lt=today)
+        .count()
+    )
+
+    expiring_docs = (
+        VehicleDocument.objects
+        .filter(tenant=tenant, expires_on__isnull=False, expires_on__gte=today, expires_on__lte=soon30)
+        .count()
+    )
+
+
+    # Fuel alerts (simple + reliable)
+    fuel_stale_count = len(vehicles_missing_fuel_logs(tenant, days=30))
+    fuel_odo_alert_count = len(odometer_regressions(tenant))
 
     return render(
         request,
@@ -42,5 +64,9 @@ def dashboard(request):
             "open_alerts": open_alerts,
             "overdue_inspections": overdue_inspections,
             "due_soon_inspections": due_soon_inspections,
+            "expired_docs": expired_docs,
+            "expiring_docs": expiring_docs,
+            "fuel_stale_count": fuel_stale_count,
+            "fuel_odo_alert_count": fuel_odo_alert_count,
         },
     )

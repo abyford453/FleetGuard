@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import FuelLogForm
 from .models import FuelLog
+from .alerts import vehicles_missing_fuel_logs, odometer_regressions
 
 @login_required
 def fuel_list(request):
@@ -84,3 +85,22 @@ def fuel_delete(request, pk: int):
         return redirect("fuel:list")
 
     return render(request, "fuel/form.html", {"mode": "delete", "obj": obj})
+
+@login_required
+def fuel_alerts(request):
+    tenant = request.tenant
+
+    stale = vehicles_missing_fuel_logs(tenant, days=30)
+    odo = odometer_regressions(tenant)
+
+    alerts = stale + odo
+
+    return render(
+        request,
+        "fuel/alerts.html",
+        {
+            "alerts": alerts,
+            "stale_count": len(stale),
+            "odo_count": len(odo),
+        },
+    )

@@ -1,16 +1,23 @@
 {% extends "base.html" %}
-{% block page_title %}New Document{% endblock %}
-{% block page_subtitle %}Upload or attach a document to a vehicle{% endblock %}
+{% block page_title %}Upload Document{% endblock %}
 {% block content %}
-  {% include "partials/module_placeholder.html" with
-    module_title="Document Create"
-    module_purpose="This will become the document upload form (vehicle, doc type, title, file, notes)."
-    app_path="apps/documents/"
-    urls_path="apps/documents/urls.py"
-    views_path="apps/documents/views.py"
-    templates_path="templates/documents/"
-    planned_features=planned_features
-    routes=routes
-    template_files=template_files
-  %}
+
+<div class="panel" style="max-width:720px;">
+  {% if mode == "delete" %}
+    <p>Delete document?</p>
+    <form method="post">
+      {% csrf_token %}
+      <button class="btn danger">Confirm Delete</button>
+      <a class="btn" href="{% url 'documents:document_list' %}">Cancel</a>
+    </form>
+  {% else %}
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="btn primary">Save</button>
+      <a class="btn" href="{% url 'documents:document_list' %}">Cancel</a>
+    </form>
+  {% endif %}
+</div>
+
 {% endblock %}

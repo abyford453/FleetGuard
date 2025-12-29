@@ -1,16 +1,74 @@
 {% extends "base.html" %}
 {% block page_title %}Documents{% endblock %}
-{% block page_subtitle %}Vehicle-related files and records{% endblock %}
+{% block page_subtitle %}Vehicle documents and uploads{% endblock %}
 {% block content %}
-  {% include "partials/module_placeholder.html" with
-    module_title="Documents Module"
-    module_purpose="Store and manage files tied to vehicles (registration, insurance, warranties, PDFs)."
-    app_path="apps/documents/"
-    urls_path="apps/documents/urls.py"
-    views_path="apps/documents/views.py"
-    templates_path="templates/documents/"
-    planned_features=planned_features
-    routes=routes
-    template_files=template_files
-  %}
+
+<div class="toolbar">
+  <form method="get" class="searchbar">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search title, notes, unit, vin">
+    <select name="vehicle">
+      <option value="">All Vehicles</option>
+      {% for v in vehicles %}
+        <option value="{{ v.id }}" {% if vehicle_id|stringformat:"s" == v.id|stringformat:"s" %}selected{% endif %}>
+          {% if v.unit_number %}Unit {{ v.unit_number }} — {% endif %}{{ v.make }} {{ v.model }}
+        </option>
+      {% endfor %}
+    </select>
+    <select name="doc_type">
+      <option value="">All Types</option>
+      {% for key,label in doc_types %}
+        <option value="{{ key }}" {% if doc_type == key %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn">Filter</button>
+    <a class="btn" href="{% url 'documents:document_list' %}">Reset</a>
+  </form>
+
+  <a class="btn primary" href="{% url 'documents:document_create' %}">+ Upload Document</a>
+</div>
+
+<div class="panel">
+  {% if documents %}
+    <table>
+      <thead>
+        <tr>
+          <th>Uploaded</th>
+          <th>Vehicle</th>
+          <th>Type</th>
+          <th>Title</th>
+          <th>Expires</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in documents %}
+          <tr>
+            <td>{{ d.uploaded_at|date:"Y-m-d" }}</td>
+            <td>{% if d.vehicle.unit_number %}Unit {{ d.vehicle.unit_number }}{% else %}Vehicle{% endif %}</td>
+            <td>{{ d.get_doc_type_display }}</td>
+            <td>
+              <a href="{{ d.file.url }}" target="_blank">{{ d.title|default:"View File" }}</a>
+            </td>
+            <td>
+              {% if d.expires_on %}
+                {{ d.expires_on }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>
+              <form method="post" action="{% url 'documents:document_delete' d.id %}">
+                {% csrf_token %}
+                <button class="btn danger" type="submit">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No documents uploaded yet.</p>
+  {% endif %}
+</div>
+
 {% endblock %}

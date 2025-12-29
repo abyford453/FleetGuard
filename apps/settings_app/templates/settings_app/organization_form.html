@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block page_title %}Organization & Preferences{% endblock %}
+{% block page_subtitle %}Tenant-scoped settings for the active organization{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <div class="card-header org-head">
+    <div>
+      <div class="h2">Organization</div>
+      <div class="muted">
+        Editing tenant: <strong>{% if tenant %}{{ tenant.name }}{% else %}—{% endif %}</strong>
+      </div>
+    </div>
+    <div class="right-actions">
+      <a class="btn btn-ghost" href="{% url 'settings_app:index' %}">Back</a>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <form method="post" class="org-form">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="note warn">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="section">
+        <div class="section-title">Identity</div>
+        <div class="grid">
+          <div class="field">
+            <label class="label" for="{{ form.name.id_for_label }}">Organization Name</label>
+            {{ form.name }}
+            {% if form.name.errors %}<div class="errors">{{ form.name.errors }}</div>{% endif %}
+            <div class="help">Displayed across FleetGuard for this tenant.</div>
+          </div>
+
+          <div class="field readonly">
+            <label class="label">Tenant Slug</label>
+            <div class="ro">{{ tenant.slug }}</div>
+            <div class="help">Locked to prevent breaking tenant routing/links.</div>
+          </div>
+
+          <div class="field readonly">
+            <label class="label">Created</label>
+            <div class="ro">{% if tenant.created_at %}{{ tenant.created_at }}{% else %}—{% endif %}</div>
+            <div class="help">When this tenant was created.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Preferences</div>
+        <div class="section-desc">Defaults that drive alerts and reporting behavior.</div>
+
+        <div class="grid">
+          <div class="field">
+            <label class="label" for="{{ form.default_inspection_due_days.id_for_label }}">Default inspection due (days)</label>
+            {{ form.default_inspection_due_days }}
+            {% if form.default_inspection_due_days.errors %}<div class="errors">{{ form.default_inspection_due_days.errors }}</div>{% endif %}
+            <div class="help">How often inspections are considered due by default.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="{{ form.inspection_alert_days_before.id_for_label }}">Inspection alert lead time (days)</label>
+            {{ form.inspection_alert_days_before }}
+            {% if form.inspection_alert_days_before.errors %}<div class="errors">{{ form.inspection_alert_days_before.errors }}</div>{% endif %}
+            <div class="help">How many days before due date to flag an alert.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="{{ form.maintenance_alert_miles_before.id_for_label }}">Maintenance alert lead (distance)</label>
+            {{ form.maintenance_alert_miles_before }}
+            {% if form.maintenance_alert_miles_before.errors %}<div class="errors">{{ form.maintenance_alert_miles_before.errors }}</div>{% endif %}
+            <div class="help">How many miles/km before a service is due to flag it.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="{{ form.maintenance_alert_days_before.id_for_label }}">Maintenance alert lead (days)</label>
+            {{ form.maintenance_alert_days_before }}
+            {% if form.maintenance_alert_days_before.errors %}<div class="errors">{{ form.maintenance_alert_days_before.errors }}</div>{% endif %}
+            <div class="help">How many days before due date to flag a maintenance alert.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="{{ form.units_distance.id_for_label }}">Distance units</label>
+            {{ form.units_distance }}
+            {% if form.units_distance.errors %}<div class="errors">{{ form.units_distance.errors }}</div>{% endif %}
+            <div class="help">Used for maintenance thresholds and display.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="{{ form.units_fuel.id_for_label }}">Fuel units</label>
+            {{ form.units_fuel }}
+            {% if form.units_fuel.errors %}<div class="errors">{{ form.units_fuel.errors }}</div>{% endif %}
+            <div class="help">Used when displaying fuel entries.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn" type="submit">Save Changes</button>
+        <a class="btn btn-ghost" href="{% url 'settings_app:index' %}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .h2{ font-size:18px; font-weight:900; }
+  .muted{ opacity:.78; margin-top:4px; }
+  .org-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+  .right-actions{ display:flex; align-items:center; gap:10px; }
+
+  .org-form{ display:grid; gap:14px; }
+
+  .section{ display:grid; gap:10px; }
+  .section-title{ font-size:14px; font-weight:900; letter-spacing:.02em; }
+  .section-desc{ opacity:.75; font-size:13px; margin-top:-6px; }
+
+  .grid{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
+  @media (max-width: 860px){ .grid{ grid-template-columns: 1fr; } }
+
+  .field{
+    padding:12px;
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.03);
+  }
+  .label{
+    display:block;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.02em;
+    opacity:.75;
+    margin-bottom:6px;
+    font-weight:900;
+  }
+
+  .field input, .field select{
+    width:100%;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.12);
+    color: inherit;
+    outline: none;
+  }
+
+  .readonly .ro{
+    width:100%;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.08);
+    opacity:.9;
+    font-weight:800;
+  }
+
+  .help{ opacity:.7; font-size:12px; margin-top:6px; }
+  .errors{ margin-top:8px; opacity:.95; }
+
+  .note.warn{ border:1px solid rgba(255,195,66,.30); background: rgba(255,195,66,.07); padding:12px 14px; border-radius:14px; }
+
+  .actions{ display:flex; gap:10px; flex-wrap:wrap; }
+</style>
+
+{% endblock %}

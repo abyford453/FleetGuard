@@ -136,12 +136,11 @@ def _build_report_context(request):
         FuelLog.objects
         .filter(tenant=tenant, fuel_date__gte=start_30)
         .exclude(cost__isnull=True)
-        .annotate(d=TruncDate("fuel_date"))
-        .values("d")
+        .values("fuel_date")
         .annotate(total=Coalesce(Sum("cost"), Decimal("0.00")))
-        .order_by("d")
+        .order_by("fuel_date")
     )
-    daily_labels = [row["d"].strftime("%Y-%m-%d") for row in daily]
+    daily_labels = [row["fuel_date"].strftime("%Y-%m-%d") for row in daily]
     daily_values = [float(row["total"]) for row in daily]
 
     start_12m = today - timedelta(days=365)

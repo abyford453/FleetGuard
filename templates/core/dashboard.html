@@ -4,8 +4,15 @@
 {% block content %}
 
 <style>
-  .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+  .dash-wrap{max-width:1200px;}
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(12, minmax(0, 1fr));
+    gap:12px;
+    align-items:stretch;
+  }
   .card{
+    grid-column:span 4;
     background:rgba(255,255,255,.03);
     border:1px solid rgba(255,255,255,.10);
     border-radius:18px;
@@ -15,42 +22,80 @@
     flex-direction:column;
     gap:8px;
     text-decoration:none;
+    min-height:132px;         /* forces consistent height */
+    justify-content:space-between;
   }
   .k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.70;}
-  .v{font-size:28px;font-weight:950;line-height:1;}
-  .muted{opacity:.70;}
+  .v{font-size:30px;font-weight:950;line-height:1;}
+  .muted{opacity:.70; font-size:13px; line-height:1.35;}
   .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
   .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);text-decoration:none;}
+
+  /* Accents */
   .warn{border-color:rgba(255,200,60,.35);background:rgba(255,200,60,.08);}
   .danger{border-color:rgba(255,80,80,.35);background:rgba(255,80,80,.08);}
   .info{border-color:rgba(37,214,255,.30);background:rgba(37,214,255,.06);}
-  @media (max-width: 900px){ .grid{grid-template-columns:1fr;} }
+
+  /* Responsive */
+  @media (max-width: 1100px){
+    .card{grid-column:span 6;}
+  }
+  @media (max-width: 700px){
+    .card{grid-column:span 12;}
+  }
 </style>
 
-<div class="grid">
-  <a class="card warn" href="{% url 'inspections:alerts' %}">
-    <div class="k">Open Inspection Alerts</div>
-    <div class="v">{{ open_alerts }}</div>
-    <div class="muted">Click to review failed inspection issues</div>
-  </a>
+<div class="dash-wrap">
+  <div class="grid">
 
-  <a class="card danger" href="{% url 'inspections:list' %}?overdue=1">
-    <div class="k">Overdue Inspections</div>
-    <div class="v">{{ overdue_inspections }}</div>
-    <div class="muted">Past due date and not completed</div>
-  </a>
+    <a class="card warn" href="{% url 'inspections:alerts' %}">
+      <div>
+        <div class="k">Open Inspection Alerts</div>
+        <div class="v">{{ open_alerts }}</div>
+      </div>
+      <div class="muted">Failed inspections and active issues that need attention.</div>
+    </a>
 
-  <a class="card info" href="{% url 'inspections:list' %}?due_soon=1">
-    <div class="k">Due Soon (7 days)</div>
-    <div class="v">{{ due_soon_inspections }}</div>
-    <div class="muted">Upcoming inspections that need scheduling</div>
-  </a>
-</div>
+    <a class="card danger" href="{% url 'inspections:list' %}?overdue=1">
+      <div>
+        <div class="k">Overdue Inspections</div>
+        <div class="v">{{ overdue_inspections }}</div>
+      </div>
+      <div class="muted">Past due date and not completed.</div>
+    </a>
 
-<div class="row">
-  <a class="btn" href="{% url 'fleet:vehicle_list' %}">Vehicles</a>
-  <a class="btn" href="{% url 'inspections:list' %}">Inspections</a>
-  <a class="btn" href="{% url 'inspections:alerts' %}">Alerts</a>
+    <a class="card info" href="{% url 'inspections:list' %}?due_soon=1">
+      <div>
+        <div class="k">Due Soon (7 days)</div>
+        <div class="v">{{ due_soon_inspections }}</div>
+      </div>
+      <div class="muted">Upcoming inspections that should be scheduled.</div>
+    </a>
+
+    <a class="card danger" href="{% url 'documents:document_list' %}?expired=1">
+      <div>
+        <div class="k">Expired Documents</div>
+        <div class="v">{{ expired_docs }}</div>
+      </div>
+      <div class="muted">Docs past expiration date (insurance, registration, etc.).</div>
+    </a>
+
+    <a class="card warn" href="{% url 'documents:document_list' %}?expiring=1">
+      <div>
+        <div class="k">Expiring Documents (30 days)</div>
+        <div class="v">{{ expiring_docs }}</div>
+      </div>
+      <div class="muted">Docs expiring soon — review before they lapse.</div>
+    </a>
+
+  </div>
+
+  <div class="row">
+    <a class="btn" href="{% url 'fleet:vehicle_list' %}">Vehicles</a>
+    <a class="btn" href="{% url 'inspections:list' %}">Inspections</a>
+    <a class="btn" href="{% url 'inspections:alerts' %}">Alerts</a>
+    <a class="btn" href="{% url 'documents:document_list' %}">Documents</a>
+  </div>
 </div>
 
 {% endblock %}

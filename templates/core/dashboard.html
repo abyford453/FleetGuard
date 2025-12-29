@@ -1,6 +1,56 @@
 {% extends "base.html" %}
 {% block page_title %}Dashboard{% endblock %}
-{% block page_subtitle %}Foundation running (placeholders wired){% endblock %}
+{% block page_subtitle %}Quick status for your tenant{% endblock %}
 {% block content %}
-  <div class="muted">Everything is hooked up. Next we build real models + tenant filtering, module by module.</div>
+
+<style>
+  .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+  .card{
+    background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:18px;
+    padding:14px;
+    box-shadow:0 12px 34px rgba(0,0,0,.22);
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    text-decoration:none;
+  }
+  .k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.70;}
+  .v{font-size:28px;font-weight:950;line-height:1;}
+  .muted{opacity:.70;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);text-decoration:none;}
+  .warn{border-color:rgba(255,200,60,.35);background:rgba(255,200,60,.08);}
+  .danger{border-color:rgba(255,80,80,.35);background:rgba(255,80,80,.08);}
+  .info{border-color:rgba(37,214,255,.30);background:rgba(37,214,255,.06);}
+  @media (max-width: 900px){ .grid{grid-template-columns:1fr;} }
+</style>
+
+<div class="grid">
+  <a class="card warn" href="{% url 'inspections:alerts' %}">
+    <div class="k">Open Inspection Alerts</div>
+    <div class="v">{{ open_alerts }}</div>
+    <div class="muted">Click to review failed inspection issues</div>
+  </a>
+
+  <a class="card danger" href="{% url 'inspections:list' %}?overdue=1">
+    <div class="k">Overdue Inspections</div>
+    <div class="v">{{ overdue_inspections }}</div>
+    <div class="muted">Past due date and not completed</div>
+  </a>
+
+  <a class="card info" href="{% url 'inspections:list' %}?due_soon=1">
+    <div class="k">Due Soon (7 days)</div>
+    <div class="v">{{ due_soon_inspections }}</div>
+    <div class="muted">Upcoming inspections that need scheduling</div>
+  </a>
+</div>
+
+<div class="row">
+  <a class="btn" href="{% url 'fleet:vehicle_list' %}">Vehicles</a>
+  <a class="btn" href="{% url 'inspections:list' %}">Inspections</a>
+  <a class="btn" href="{% url 'inspections:alerts' %}">Alerts</a>
+</div>
+
 {% endblock %}
